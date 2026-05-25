@@ -60,8 +60,8 @@ export function Sidebar({ currentMenu, onMenuChange, isOpen, onClose, isCollapse
     <>
       {/* Mobile Overlay */}
       {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden animate-in fade-in duration-200"
           onClick={onClose}
         />
       )}
@@ -106,11 +106,11 @@ export function Sidebar({ currentMenu, onMenuChange, isOpen, onClose, isCollapse
                       }}
                       title={isCollapsed ? item.label : undefined}
                       className={cn(
-                        "w-full flex items-center rounded-lg transition-all duration-200 group",
+                        "w-full flex items-center rounded-lg transition-all duration-300 group relative overflow-hidden",
                         isCollapsed ? "justify-center px-0 py-3" : "justify-between px-3 py-2.5",
-                        isActive 
-                          ? "text-red-600 bg-red-50 dark:bg-red-500/10 font-bold" 
-                          : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-black hover:text-red-600 dark:hover:text-red-500"
+                        isActive
+                          ? "text-red-600 bg-red-50 dark:bg-red-500/10 font-bold"
+                          : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-black hover:text-red-600 dark:hover:text-red-500 hover:translate-x-1"
                       )}
                     >
                       <div className={cn("flex items-center", isCollapsed ? "gap-0" : "gap-3")}>
@@ -121,21 +121,21 @@ export function Sidebar({ currentMenu, onMenuChange, isOpen, onClose, isCollapse
                         {!isCollapsed && <span className={cn("text-sm tracking-tight transition-colors", isActive ? "text-red-600" : "text-zinc-600 dark:text-zinc-400 group-hover:text-red-600 dark:group-hover:text-red-500")}>{item.label}</span>}
                       </div>
                       {!isCollapsed && item.hasDropdown && (
-                        isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />
+                        isExpanded ? <ChevronDown className="w-4 h-4 transition-transform duration-300" /> : <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
                       )}
                     </button>
                     
                     {/* Dropdown items from navigation data */}
                     {!isCollapsed && item.hasDropdown && isExpanded && (
-                      <ul className="mt-1 ml-11 space-y-1 border-l border-zinc-200 dark:border-zinc-900 transition-colors">
+                      <ul className="mt-1 ml-11 space-y-1 border-l border-zinc-200 dark:border-zinc-900 transition-all duration-300 slide-in-left">
                         {NAVIGATION.find(n => n.id === item.id)?.items?.map(sub => (
                           <li key={sub.id}>
-                            <button 
+                            <button
                               onClick={() => {
                                 onMenuChange(sub.label as any);
                                 if (window.innerWidth < 1024) onClose();
                               }}
-                              className="w-full text-left px-3 py-1.5 text-[10px] uppercase font-bold tracking-widest text-zinc-500 dark:text-zinc-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                              className="w-full text-left px-3 py-1.5 text-[10px] uppercase font-bold tracking-widest text-zinc-500 dark:text-zinc-500 hover:text-red-600 dark:hover:text-red-400 transition-all duration-300 hover:translate-x-1"
                             >
                               {sub.label}
                             </button>

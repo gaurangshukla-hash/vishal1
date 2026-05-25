@@ -201,29 +201,29 @@ export default function App() {
             <button
               onClick={() => updateState({ theme: state.theme === 'light' ? 'dark' : 'light' })}
               className={cn(
-                "p-1.5 md:p-2 rounded-lg transition-all",
-                state.theme === 'light' ? "bg-zinc-100 text-zinc-600 hover:bg-zinc-200" : "bg-zinc-800 text-white hover:bg-zinc-700"
+                "p-1.5 md:p-2 rounded-lg transition-all duration-300 hover:scale-110 active:scale-95",
+                state.theme === 'light' ? "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:shadow-lg hover:shadow-yellow-400/20" : "bg-zinc-800 text-white hover:bg-zinc-700 hover:shadow-lg hover:shadow-blue-400/20"
               )}
             >
-              {state.theme === 'light' ? <Moon className="w-4 h-4 md:w-5 md:h-5" /> : <Sun className="w-4 h-4 md:w-5 md:h-5" />}
+              {state.theme === 'light' ? <Moon className="w-4 h-4 md:w-5 md:h-5 transition-transform" /> : <Sun className="w-4 h-4 md:w-5 md:h-5 transition-transform" />}
             </button>
           </div>
           
           <div className="relative">
-            <button 
+            <button
               onClick={() => {
                 setIsNotificationOpen(!isNotificationOpen);
                 if (!isNotificationOpen) markAllAsRead();
               }}
               className={cn(
-                "relative p-1 transition-all",
+                "relative p-1 transition-all duration-300 hover:scale-110 active:scale-95",
                 state.theme === 'light' ? "text-zinc-500 hover:text-zinc-900" : "text-white/70 hover:text-white"
               )}
             >
               <Bell className={cn("w-4 h-4 md:w-5 md:h-5")} />
               {notifications.filter(n => !n.read).length > 0 && (
                 <div className="absolute -top-1 -right-1 flex h-4 w-4">
-                  <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 border-2 border-white dark:border-black items-center justify-center text-[8px] font-black text-white p-0.5">
+                  <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 border-2 border-white dark:border-black items-center justify-center text-[8px] font-black text-white p-0.5 animate-bounce">
                     {notifications.filter(n => !n.read).length}
                   </span>
                 </div>
@@ -234,7 +234,7 @@ export default function App() {
             {isNotificationOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setIsNotificationOpen(false)} />
-                <div className="absolute right-0 mt-3 w-80 max-h-[400px] overflow-y-auto bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl z-50 p-2 custom-scrollbar">
+                <div className="absolute right-0 mt-3 w-80 max-h-[400px] overflow-y-auto bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl z-50 p-2 custom-scrollbar slide-in-right">
                   <div className="flex items-center justify-between p-3 border-b border-zinc-100 dark:border-zinc-800 mb-2">
                     <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Notifications</h3>
                     <span className="text-[8px] bg-brand-500/10 text-brand-500 px-1.5 py-0.5 rounded font-bold">{notifications.length} Total</span>
@@ -247,7 +247,7 @@ export default function App() {
                   ) : (
                     <div className="space-y-1">
                       {notifications.map((n) => (
-                        <div key={n.id} className="p-3 rounded-xl hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors group">
+                        <div key={n.id} className="p-3 rounded-xl hover:bg-zinc-50 dark:hover:bg-white/5 transition-all duration-300 group hover:translate-x-1 hover:shadow-md">
                           <div className="flex items-center justify-between mb-1">
                             <span className={cn(
                               "text-[8px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded",
@@ -327,10 +327,10 @@ export default function App() {
                         key={option}
                         onClick={() => updateState({ time: option })}
                         className={cn(
-                          "px-3 py-1 text-[9px] font-bold uppercase tracking-widest rounded-md transition-all whitespace-nowrap",
+                          "px-3 py-1 text-[9px] font-bold uppercase tracking-widest rounded-md transition-all duration-300 whitespace-nowrap",
                           state.time === option
-                            ? "bg-white dark:bg-black text-brand-500 shadow-sm"
-                            : "text-zinc-400 hover:text-zinc-600"
+                            ? "bg-white dark:bg-black text-brand-500 shadow-md shadow-brand-500/10 scale-105"
+                            : "text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50 dark:hover:bg-black/30"
                         )}
                       >
                         {option}
@@ -346,10 +346,10 @@ export default function App() {
                         key={tab}
                         onClick={() => updateState({ mainTab: tab })}
                         className={cn(
-                          "flex-1 py-2 text-[10px] font-bold rounded-lg transition-all flex items-center justify-center gap-2 uppercase tracking-widest",
+                          "flex-1 py-2 text-[10px] font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 uppercase tracking-widest",
                           state.mainTab === tab
-                            ? "bg-white dark:bg-black text-brand-500 shadow-sm"
-                            : "text-zinc-400 hover:text-zinc-600"
+                            ? "bg-white dark:bg-black text-brand-500 shadow-md shadow-brand-500/10 scale-105"
+                            : "text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50 dark:hover:bg-black/30"
                         )}
                       >
                         {tab === 'Technical' ? <Settings2 className="w-3.5 h-3.5" /> : <Users className="w-3.5 h-3.5" />}
@@ -368,10 +368,10 @@ export default function App() {
                           key={sub}
                           onClick={() => updateState(state.mainTab === 'Technical' ? { technicalSubTab: sub as TechnicalSubTab } : { commercialSubTab: sub as CommercialSubTab })}
                           className={cn(
-                            "px-4 py-1.5 text-[9px] font-bold rounded-lg transition-all uppercase tracking-widest border whitespace-nowrap",
+                            "px-4 py-1.5 text-[9px] font-bold rounded-lg transition-all duration-300 uppercase tracking-widest border whitespace-nowrap",
                             (state.mainTab === 'Technical' ? state.technicalSubTab === sub : state.commercialSubTab === sub)
-                              ? "bg-brand-500 text-white border-brand-500 shadow-md shadow-brand-500/20"
-                              : "bg-zinc-50 dark:bg-night-bg text-zinc-500 border-zinc-200 dark:border-zinc-800 hover:border-brand-500/50"
+                              ? "bg-brand-500 text-white border-brand-500 shadow-lg shadow-brand-500/30 scale-105"
+                              : "bg-zinc-50 dark:bg-night-bg text-zinc-500 border-zinc-200 dark:border-zinc-800 hover:border-brand-500/50 hover:bg-zinc-100 dark:hover:bg-black/30"
                           )}
                         >
                           {sub}
@@ -385,10 +385,10 @@ export default function App() {
                           key={sub}
                           onClick={() => updateState(state.mainTab === 'Technical' ? { technicalSubTab: sub as TechnicalSubTab } : { commercialSubTab: sub as CommercialSubTab })}
                           className={cn(
-                            "px-4 py-1.5 text-[9px] font-bold rounded-lg transition-all uppercase tracking-widest border flex items-center gap-1.5 whitespace-nowrap",
+                            "px-4 py-1.5 text-[9px] font-bold rounded-lg transition-all duration-300 uppercase tracking-widest border flex items-center gap-1.5 whitespace-nowrap",
                             (state.mainTab === 'Technical' ? state.technicalSubTab === sub : state.commercialSubTab === sub)
-                              ? "bg-brand-500 text-white border-brand-500 shadow-md shadow-brand-500/20"
-                              : "bg-amber-50/50 dark:bg-amber-900/10 text-amber-600 dark:text-amber-400 border-amber-200/50 dark:border-amber-900/30 hover:border-amber-400/50"
+                              ? "bg-brand-500 text-white border-brand-500 shadow-lg shadow-brand-500/30 scale-105"
+                              : "bg-amber-50/50 dark:bg-amber-900/10 text-amber-600 dark:text-amber-400 border-amber-200/50 dark:border-amber-900/30 hover:border-amber-400/50 hover:bg-amber-100/50 dark:hover:bg-amber-900/20"
                           )}
                         >
                           <div className={cn("w-1 h-1 rounded-full", (state.mainTab === 'Technical' ? state.technicalSubTab === sub : state.commercialSubTab === sub) ? "bg-white" : "bg-amber-500")} />

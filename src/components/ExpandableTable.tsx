@@ -39,11 +39,11 @@ const ExpandableRow: React.FC<ExpandableRowProps> = ({ node, columns, level = 0 
 
   return (
     <>
-      <tr 
+      <tr
         onClick={node.children ? handleToggle : undefined}
         className={cn(
           "group transition-all duration-300 border-b border-zinc-100 dark:border-zinc-800",
-          isExpanded ? "bg-brand-500/5 dark:bg-brand-500/10" : "hover:bg-zinc-50 dark:hover:bg-black",
+          isExpanded ? "bg-brand-500/5 dark:bg-brand-500/10 shadow-sm" : "hover:bg-zinc-50 dark:hover:bg-black hover:shadow-sm",
           node.children ? "cursor-pointer" : ""
         )}
       >
@@ -59,13 +59,13 @@ const ExpandableRow: React.FC<ExpandableRowProps> = ({ node, columns, level = 0 
           >
             <div className={cn("flex items-center gap-2 md:gap-3", col.key === 'trend' && "justify-end")}>
               {i === 0 && node.children && (
-                <div 
+                <div
                   className={cn(
-                    "p-0.5 md:p-1 rounded-md md:rounded-lg transition-all duration-300",
-                    isExpanded ? "bg-brand-500 text-white rotate-90" : "bg-zinc-100 dark:bg-night-bg text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-200"
+                    "p-0.5 md:p-1 rounded-md md:rounded-lg transition-all duration-300 group-hover:scale-110",
+                    isExpanded ? "bg-brand-500 text-white rotate-90" : "bg-zinc-100 dark:bg-night-bg text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-200 group-hover:bg-brand-500/20"
                   )}
                 >
-                  <ChevronRight className="w-3 md:w-3.5 h-3 md:h-3.5" />
+                  <ChevronRight className="w-3 md:w-3.5 h-3 md:h-3.5 transition-transform duration-300" />
                 </div>
               )}
               <span className="truncate">
@@ -81,18 +81,18 @@ const ExpandableRow: React.FC<ExpandableRowProps> = ({ node, columns, level = 0 
             <tr>
               <td colSpan={columns.length} className="py-4 px-6 text-center">
                 <div className="flex items-center justify-center gap-2 text-xs text-zinc-400 font-bold uppercase tracking-widest animate-pulse">
-                  <div className="w-1.5 h-1.5 rounded-full bg-brand-500" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-bounce" />
                   Loading Data...
                 </div>
               </td>
             </tr>
           ) : (
             children.map(child => (
-              <ExpandableRow 
-                key={child.id} 
-                node={child} 
-                columns={columns} 
-                level={level + 1} 
+              <ExpandableRow
+                key={child.id}
+                node={child}
+                columns={columns}
+                level={level + 1}
               />
             ))
           )}

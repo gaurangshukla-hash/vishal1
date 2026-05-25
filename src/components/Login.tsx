@@ -93,8 +93,8 @@ export function Login({ onLogin }: LoginProps) {
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-600 dark:text-red-400 text-sm font-medium">
-                <AlertCircle className="h-5 w-5 shrink-0" />
+              <div className="flex items-center gap-2 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-600 dark:text-red-400 text-sm font-medium scale-in">
+                <AlertCircle className="h-5 w-5 shrink-0 animate-bounce" />
                 <span>{error}</span>
               </div>
             )}
@@ -102,7 +102,7 @@ export function Login({ onLogin }: LoginProps) {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-brand-500 hover:bg-brand-600 text-white rounded-2xl py-4 font-black uppercase tracking-widest shadow-xl shadow-brand-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98] flex items-center justify-center gap-2 group"
+              className="w-full bg-brand-500 hover:bg-brand-600 text-white rounded-2xl py-4 font-black uppercase tracking-widest shadow-xl shadow-brand-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 active:scale-[0.98] hover:shadow-2xl hover:shadow-brand-500/40 hover:-translate-y-0.5 flex items-center justify-center gap-2 group"
             >
               {isLoading ? (
                 <Activity className="w-5 h-5 animate-spin" />

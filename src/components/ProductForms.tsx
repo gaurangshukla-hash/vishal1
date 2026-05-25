@@ -322,9 +322,9 @@ export function RateTableRatesView({ onClose, rateTableName }: { onClose: () => 
                 className="w-full px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded text-xs outline-none focus:border-blue-500 font-mono"
               />
             </div>
-            <button 
-              type="submit" 
-              className="py-1.5 bg-[#428bca] hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded shadow transition-all flex items-center justify-center gap-1"
+            <button
+              type="submit"
+              className="py-1.5 bg-[#428bca] hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded shadow transition-all duration-300 flex items-center justify-center gap-1 hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5 active:translate-y-0"
             >
               <CheckCircle2 className="w-3.5 h-3.5" /> Append Rate
             </button>
