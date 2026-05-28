@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  # MariaDB Database
+  mariadb:
+    image: mariadb:10.5
+    container_name: teleoss-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password_123
+      MYSQL_DATABASE: teleoss
+      MYSQL_USER: teleoss_user
+      MYSQL_PASSWORD: teleoss_password
+      MARIADB_AUTO_UPGRADE: 1
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./database/seed-data.sql:/docker-entrypoint-initdb.d/02-seed-data.sql
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - teleoss-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    restart: unless-stopped
+
+  # Spring Boot Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: teleoss-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/teleoss
+      SPRING_DATASOURCE_USERNAME: teleoss_user
+      SPRING_DATASOURCE_PASSWORD: teleoss_password
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MariaDBDialect
+      SERVER_PORT: 8080
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8080:8080"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - teleoss-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    volumes:
+      - ./backend/logs:/app/logs
+
+  # Angular Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - ANGULAR_CLI_VERSION=17
+    container_name: teleoss-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - teleoss-network
+    environment:
+      - API_URL=http://backend:8080/api
+    restart: unless-stopped
+
+  # PhpMyAdmin (Optional - for database management)
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: teleoss-phpmyadmin
+    environment:
+      PMA_HOST: mariadb
+      PMA_USER: root
+      PMA_PASSWORD: root_password_123
+      PMA_PORT: 3306
+    ports:
+      - "8081:80"
+    depends_on:
+      - mariadb
+    networks:
+      - teleoss-network
+    restart: unless-stopped
+
+networks:
+  teleoss-network:
+    driver: bridge
+
+volumes:
+  mariadb_data:
+    driver: local
