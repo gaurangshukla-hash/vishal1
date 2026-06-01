@@ -5,7 +5,8 @@ import {
   Save, X, Info, MapPin, Phone, Mail, Globe, Server, Shield, Zap, List, 
   CreditCard, Users, Settings, Eye, Search, Download, Edit2, FileText, 
   CheckSquare, Lock, ChevronDown, Clock, MousePointer2, AlertCircle, Trash2, Upload, Plus,
-  RotateCcw, ArrowLeft, Database, Landmark, Check, CheckCircle2, ChevronRight, TrendingDown, ChevronLeft, Bell
+  RotateCcw, ArrowLeft, Database, Landmark, Check, CheckCircle2, ChevronRight, TrendingDown, ChevronLeft, Bell,
+  Cpu, Play, ChevronUp, ShieldAlert, ShieldCheck, AlertTriangle
 } from 'lucide-react';
 
 interface EnterpriseFormProps {
@@ -178,6 +179,64 @@ export function getFallbackProductInfo(name: string) {
 
 export function EnterpriseForm({ title = 'Form', theme, onClose, type = 'Enterprise', data, isViewOnly = false, subTab, hideTabs = false }: EnterpriseFormProps) {
   const [activeSubTab, setActiveSubTab] = React.useState(subTab || 'General Info');
+  
+  // Supplier Setup Tab States for Vendor Trunk/Supplier forms
+  const [activeVendorTab, setActiveVendorTab] = React.useState<'MAIN' | 'SENDING' | 'SMPP' | 'ADVANCED_SMPP' | 'COMMITMENT'>('MAIN');
+
+  // Tab 2 (Sending Settings) state
+  const [vendorUsername, setVendorUsername] = React.useState(data?.username || 'breelink_smpp_usr');
+  const [vendorPassword, setVendorPassword] = React.useState('••••••••••••');
+  const [vendorServicePurpose, setVendorServicePurpose] = React.useState('Both');
+  const [vendorProtocolState, setVendorProtocolState] = React.useState('SMPP');
+  const [vendorVisibleStatus, setVendorVisibleStatus] = React.useState(true);
+  const [vendorOperatorWiseTPS, setVendorOperatorWiseTPS] = React.useState(true);
+
+  // Tab 3 (SMPP Settings) state
+  const [vendorHostUrl, setVendorHostUrl] = React.useState(data?.host || 'smpp.breelink-global.com');
+  const [vendorNoOfSockets, setVendorNoOfSockets] = React.useState('2');
+  const [vendorBindMode, setVendorBindMode] = React.useState('TRANSCEIVER');
+  const [vendorDataCoding, setVendorDataCoding] = React.useState('Default');
+  const [vendorSystemType, setVendorSystemType] = React.useState('smsc');
+  const [vendorDlrReceiver, setVendorDlrReceiver] = React.useState(true);
+  const [vendorSendingPort, setVendorSendingPort] = React.useState('0');
+  const [vendorReceiverPort, setVendorReceiverPort] = React.useState('0');
+
+  // Tab 4 (Advanced SMPP Settings) state
+  const [vendorNumberPlan, setVendorNumberPlan] = React.useState('Default[0]');
+  const [vendorTypeOfNumber, setVendorTypeOfNumber] = React.useState('Default[0]');
+  const [vendorDelayInDelivery, setVendorDelayInDelivery] = React.useState('0');
+  const [vendorDelayInSMPP, setVendorDelayInSMPP] = React.useState('0');
+  const [vendorReconnectionDelay, setVendorReconnectionDelay] = React.useState('5000');
+  const [vendorPrefixSenderId, setVendorPrefixSenderId] = React.useState('ton=0;npi=0;');
+  const [vendorAddressRange, setVendorAddressRange] = React.useState('ton=0;npi=0;');
+  const [vendorReconnectWaitTime, setVendorReconnectWaitTime] = React.useState('86400');
+  const [vendorWindowSize, setVendorWindowSize] = React.useState('10');
+  const [vendorMessagePriority, setVendorMessagePriority] = React.useState('Default[null]');
+  const [vendorDeliveryTime, setVendorDeliveryTime] = React.useState('');
+  const [vendorFinalDate, setVendorFinalDate] = React.useState('null');
+  const [vendorServiceType, setVendorServiceType] = React.useState('Default[null]');
+  const [vendorReplaceIfPresent, setVendorReplaceIfPresent] = React.useState('Default[null]');
+  const [vendorRegisteredDelivery, setVendorRegisteredDelivery] = React.useState('delivery success or failure');
+  const [vendorEsmClass, setVendorEsmClass] = React.useState('0');
+  const [vendorErrorCode, setVendorErrorCode] = React.useState('0');
+  const [vendorVersion, setVendorVersion] = React.useState('3.4');
+  const [vendorProtocolId, setVendorProtocolId] = React.useState('0');
+
+  const [vendorAutoStartSettingsOpen, setVendorAutoStartSettingsOpen] = React.useState(false);
+  const [vendorTimeZoneSettingsOpen, setVendorTimeZoneSettingsOpen] = React.useState(false);
+  const [vendorAutoStart, setVendorAutoStart] = React.useState(true);
+  const [vendorTimeZone, setVendorTimeZone] = React.useState('UTC');
+
+  // Tab 5 state
+  const [vendorCommitmentRule, setVendorCommitmentRule] = React.useState('None');
+  const [vendorTargetCount, setVendorTargetCount] = React.useState('1000000');
+  const [vendorPenaltyRate, setVendorPenaltyRate] = React.useState('0.0015');
+  const [vendorStartDate, setVendorStartDate] = React.useState('2026-05-01');
+  const [vendorEndDate, setVendorEndDate] = React.useState('2026-12-31');
+
+  // Switch Instance settings for Tab 1
+  const [vendorInstanceWiseOpen, setVendorInstanceWiseOpen] = React.useState(true);
+  const [vendorSelectedInstances, setVendorSelectedInstances] = React.useState<string[]>(['Instance_01', 'Instance_02']);
   const [creditLimit, setCreditLimit] = React.useState(10000.00);
   const [creditLimitInput, setCreditLimitInput] = React.useState('10000.00');
   const [addCreditInput, setAddCreditInput] = React.useState('0');
@@ -1629,6 +1688,49 @@ function AccountDetailModal({ account, onClose }: { account: any, onClose: () =>
            ) : <div />}
         </div>
 
+        {/* VENDOR SUPPLIER SETUP TABS HEADER */}
+        {trunkType === 'Vendor' && (
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3 shadow-xs space-y-1.5 shrink-0 flex flex-wrap gap-2 items-center justify-between mb-4">
+            <div className="flex gap-1.5 flex-wrap">
+              {[
+                { id: 'MAIN', label: 'MAIN SETTING', description: 'Core connection details' },
+                { id: 'SENDING', label: 'SENDING SETTINGS', description: 'Bind identity & purpose' },
+                { id: 'SMPP', label: 'SMPP SETTINGS', description: 'Host urls & socket modes' },
+                { id: 'ADVANCED_SMPP', label: 'ADVANCE SMPP SETTINGS', description: 'Delays, TON/NPI & protocols' },
+                { id: 'COMMITMENT', label: 'COMMITMENT', description: 'Volume targets & penalty terms' }
+              ].map((tab) => {
+                const isActive = activeVendorTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveVendorTab(tab.id as any)}
+                    className={cn(
+                      "px-4 py-2.5 rounded-lg transition-all flex flex-col items-start gap-px text-left border",
+                      isActive 
+                        ? "bg-[#428bca] text-white border-[#428bca] shadow-md shadow-blue-500/10" 
+                        : "hover:bg-zinc-50 dark:hover:bg-zinc-800 border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 group"
+                    )}
+                  >
+                    <span className={cn(
+                      "text-[9px] font-black uppercase tracking-wider",
+                      isActive ? "text-white" : "text-zinc-750 dark:text-zinc-300 group-hover:text-[#428bca]"
+                    )}>
+                      {tab.label}
+                    </span>
+                    <span className={cn(
+                      "text-[8px] font-medium leading-none mt-0.5",
+                      isActive ? "text-blue-100" : "text-zinc-400 dark:text-zinc-500"
+                    )}>
+                      {tab.description}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* COMPREHENSIVE VIEW HEADER */}
         {isViewOnly && (
           <div className="bg-[#428bca] rounded-xl p-6 text-white shadow-lg mb-8 flex flex-col md:flex-row justify-between items-center gap-6">
@@ -1659,8 +1761,11 @@ function AccountDetailModal({ account, onClose }: { account: any, onClose: () =>
           </div>
         )}
 
-        {/* GENERAL INFORMATION */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 shadow-sm">
+        {/* TAB 1: MAIN SETTINGS */}
+        {(trunkType !== 'Vendor' || activeVendorTab === 'MAIN') && (
+          <>
+            {/* GENERAL INFORMATION */}
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 shadow-sm">
           <div className={sectionTitleClass}>
             <span>GENERAL INFORMATION</span>
           </div>
@@ -1879,7 +1984,60 @@ function AccountDetailModal({ account, onClose }: { account: any, onClose: () =>
               </div>
             </div>
           </div>
-        </div>
+
+            {/* Switch Instance settings for Vendor */}
+            {trunkType === 'Vendor' && (
+              <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-zinc-900 mb-6">
+                <button
+                  type="button"
+                  onClick={() => setVendorInstanceWiseOpen(!vendorInstanceWiseOpen)}
+                  className="w-full px-5 py-3.5 bg-zinc-50 dark:bg-zinc-800 flex items-center justify-between text-left border-b border-zinc-200 dark:border-zinc-800"
+                >
+                  <div className="flex items-center gap-2">
+                    <Cpu className="w-4 h-4 text-[#428bca]" />
+                    <span className="text-[11px] font-black uppercase text-zinc-750 dark:text-zinc-300 tracking-wider">Instance Wise Distribution Settings</span>
+                  </div>
+                  {vendorInstanceWiseOpen ? <ChevronUp className="w-4 h-4 text-zinc-400" /> : <ChevronDown className="w-4 h-4 text-zinc-400" />}
+                </button>
+
+                {vendorInstanceWiseOpen && (
+                  <div className="p-5 bg-white dark:bg-zinc-900 border-t-0 space-y-4">
+                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Select backend engine nodes/instances allowed to route this service's traffic:</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {['Instance_01_Mumbai', 'Instance_02_London', 'Instance_03_Frankfurt'].map((inst) => {
+                        const selected = vendorSelectedInstances.includes(inst);
+                        return (
+                          <button
+                            type="button"
+                            key={inst}
+                            onClick={() => {
+                              setVendorSelectedInstances(prev => 
+                                selected ? prev.filter(p => p !== inst) : [...prev, inst]
+                              );
+                            }}
+                            className={cn(
+                              "p-3 rounded-lg border text-left flex items-center gap-3 transition-all",
+                              selected 
+                                ? "bg-blue-50/50 dark:bg-blue-950/25 border-[#428bca] text-[#428bca] dark:text-blue-400 font-bold" 
+                                : "border-zinc-200 dark:border-zinc-800 text-zinc-500"
+                            )}
+                          >
+                            <div className={cn(
+                              "w-4 h-4 rounded-full border flex items-center justify-center transition-all",
+                              selected ? "bg-[#428bca] border-[#428bca] text-white" : "border-zinc-300"
+                            )}>
+                              {selected && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                            </div>
+                            <span className="text-[10px] uppercase font-mono tracking-tighter">{inst.replaceAll('_', ' ')}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
         {/* ADDRESS INFORMATION */}
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 shadow-sm">
@@ -2056,7 +2214,8 @@ function AccountDetailModal({ account, onClose }: { account: any, onClose: () =>
         )}
 
         {/* COMBINED CONNECTION, PROTOCOL & ADVANCED SETTINGS */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 shadow-sm">
+        {trunkType === 'Customer' && (
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 shadow-sm">
           <div className="border-b border-zinc-100 dark:border-zinc-800 pb-4 mb-6 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
             <div>
               <h4 className="text-[12px] font-black uppercase text-[#428bca] tracking-widest flex items-center gap-2">
@@ -2225,6 +2384,7 @@ function AccountDetailModal({ account, onClose }: { account: any, onClose: () =>
             )}
           </div>
         </div>
+      )}
 
         {/* NEGATIVE MARGIN CONTROL */}
         {trunkType === 'Customer' && (
@@ -2298,60 +2458,6 @@ function AccountDetailModal({ account, onClose }: { account: any, onClose: () =>
              </div>
           </div>
         </div>
-
-
-        {/* ADVANCED SUPPLIER CONNECTION SETUP (LINK, PASSWORD, BIND MODE) */}
-        {trunkType === 'Vendor' && (
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 shadow-sm text-left animate-in fade-in duration-350">
-            <h4 className={sectionTitleClass}>
-              <Server className="w-4 h-4 text-[#428bca]" /> ADVANCED SUPPLIER CONNECTION SETUP
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-              <div className="space-y-6">
-                <div>
-                  <label className={labelClass}>Supplier Target Link / IP <span className="text-red-500">*</span></label>
-                  <input type="text" defaultValue="smpp.supplierconnect.com" disabled={isViewOnly} className={inputClass} placeholder="Enter connection link (e.g., smpp.host.com)" />
-                  <p className="text-[9px] text-zinc-400 font-bold italic mt-1">Host endpoint domain or IP route to destination transceiver</p>
-                </div>
-                <div>
-                  <label className={labelClass}>SMPP Bind Mode <span className="text-red-500">*</span></label>
-                  <select disabled={isViewOnly} className={inputClass} defaultValue="Transceiver">
-                    <option value="Transceiver">Transceiver (TX + RX combined)</option>
-                    <option value="Transmitter">Transmitter (TX only)</option>
-                    <option value="Receiver">Receiver (RX only)</option>
-                    <option value="Transmitter_Receiver">Transmitter + Receiver Dual Bind</option>
-                  </select>
-                  <p className="text-[9px] text-zinc-400 font-bold italic mt-1">Operational SMPP mode utilized for connection setup</p>
-                </div>
-                <div>
-                  <label className={labelClass}>System Type Indicator</label>
-                  <input type="text" defaultValue="smpp-v34" disabled={isViewOnly} className={inputClass} />
-                </div>
-              </div>
-              <div className="space-y-6">
-                <div>
-                  <label className={labelClass}>Authenticating Password <span className="text-red-500">*</span></label>
-                  <input type="password" defaultValue="SupplierSecPassWord!" disabled={isViewOnly} className={inputClass} />
-                  <p className="text-[9px] text-zinc-400 font-bold italic mt-1">SMPP secret authentication authorization credential</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className={labelClass}>Target Port</label>
-                    <input type="number" defaultValue="2775" disabled={isViewOnly} className={inputClass} />
-                  </div>
-                  <div>
-                    <label className={labelClass}>Enquire Link (sec)</label>
-                    <input type="number" defaultValue="30" disabled={isViewOnly} className={inputClass} />
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 pt-4">
-                  <input type="checkbox" defaultChecked disabled={isViewOnly} className="w-3.5 h-3.5 rounded border-zinc-300 animate-pulse" />
-                  <label className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase">Enforce IP whitelisting mask on bind response</label>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* EMAIL AUTOMATION & INGESTION BLOCK */}
         {trunkType === 'Vendor' && (
@@ -2458,6 +2564,314 @@ function AccountDetailModal({ account, onClose }: { account: any, onClose: () =>
                   <div className="font-mono text-zinc-400 tracking-tighter truncate">✔ [May 20, 05:14] Match: 'rates@breelink-global.com' {"->"} Sheet parsed {"->"} 256 rates modified.</div>
                   <div className="font-mono text-zinc-500 tracking-tighter truncate">✔ [May 17, 12:44] Match: 'rates@breelink-global.com' {"->"} Sheet parsed {"->"} 118 rates modified.</div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+          </>
+        )}
+
+        {/* VENDOR OPTIONS TABS PARTS (SENDING, SMPP, ADVANCED, COMMITMENT) */}
+        {trunkType === 'Vendor' && activeVendorTab === 'SENDING' && (
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 shadow-sm space-y-6 animate-in fade-in duration-300">
+            <div>
+              <h4 className="text-[12px] font-black uppercase text-[#428bca] tracking-widest flex items-center gap-2">
+                <Play className="w-4 h-4 text-[#428bca]" /> SENDING SETTINGS
+              </h4>
+              <p className="text-[9px] text-zinc-400 font-bold uppercase mt-1">Configure binding modes, identity identification registers and autonomous initialization triggers</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className={labelClass}>Bind Mode <span className="text-red-500">*</span></label>
+                <div className="grid grid-cols-3 gap-2">
+                  {['Transmitter', 'Receiver', 'Transceiver'].map((mode) => (
+                    <button
+                      type="button"
+                      key={mode}
+                      onClick={() => setVendorBindMode(mode)}
+                      className={cn(
+                        "py-2 px-3 text-[10px] font-black uppercase rounded-lg border transition-all",
+                        vendorBindMode === mode
+                          ? "bg-[#428bca] text-white border-[#428bca]"
+                          : "bg-white dark:bg-zinc-805 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800"
+                      )}
+                    >
+                      {mode}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className={labelClass}>System Type</label>
+                <input
+                  type="text"
+                  value={vendorSystemType}
+                  onChange={(e) => setVendorSystemType(e.target.value)}
+                  placeholder="e.g. SMPP"
+                  className={inputClass}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className={labelClass}>Default Source TON</label>
+                <select
+                  value={vendorSourceTon}
+                  onChange={(e) => setVendorSourceTon(e.target.value)}
+                  className={inputClass}
+                >
+                  <option value="0">0 - Unknown</option>
+                  <option value="1">1 - International</option>
+                  <option value="2">2 - National</option>
+                  <option value="5">5 - Alphanumeric</option>
+                </select>
+              </div>
+
+              <div>
+                <label className={labelClass}>Default Source NPI</label>
+                <select
+                  value={vendorSourceNpi}
+                  onChange={(e) => setVendorSourceNpi(e.target.value)}
+                  className={inputClass}
+                >
+                  <option value="0">0 - Unknown</option>
+                  <option value="1">1 - ISDN/E.164</option>
+                  <option value="3">3 - Data</option>
+                  <option value="8">8 - National</option>
+                </select>
+              </div>
+
+              <div>
+                <label className={labelClass}>Default Dest TON</label>
+                <select
+                  value={vendorDestTon}
+                  onChange={(e) => setVendorDestTon(e.target.value)}
+                  className={inputClass}
+                >
+                  <option value="0">0 - Unknown</option>
+                  <option value="1">1 - International</option>
+                  <option value="2">2 - National</option>
+                </select>
+              </div>
+
+              <div>
+                <label className={labelClass}>Default Dest NPI</label>
+                <select
+                  value={vendorDestNpi}
+                  onChange={(e) => setVendorDestNpi(e.target.value)}
+                  className={inputClass}
+                >
+                  <option value="0">0 - Unknown</option>
+                  <option value="1">1 - ISDN/E.164</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="border-t border-zinc-100 dark:border-zinc-800 pt-6">
+              <label className={labelClass}>Auto Start Connection Bind</label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer font-bold text-zinc-700 dark:text-zinc-200">
+                  <input
+                    type="radio"
+                    name="vendorAutoStartBind"
+                    checked={vendorAutoStart}
+                    onChange={() => setVendorAutoStart(true)}
+                    className="w-4 h-4 text-[#428bca]"
+                  />
+                  <span>Automatically Start on instance daemon boots</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer text-zinc-400">
+                  <input
+                    type="radio"
+                    name="vendorAutoStartBind"
+                    checked={!vendorAutoStart}
+                    onChange={() => setVendorAutoStart(false)}
+                    className="w-4 h-4 text-[#428bca]"
+                  />
+                  <span>Manual start only via CLI/Dashboard</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {trunkType === 'Vendor' && activeVendorTab === 'SMPP' && (
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 shadow-sm space-y-6 animate-in fade-in duration-300">
+            <div>
+              <h4 className="text-[12px] font-black uppercase text-[#428bca] tracking-widest flex items-center gap-2">
+                <Server className="w-4 h-4 text-[#428bca]" /> SMPP SETTINGS
+              </h4>
+              <p className="text-[9px] text-zinc-400 font-bold uppercase mt-1">Set raw host endpoints, firewall rules, credentials and service identifiers</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-2">
+                <label className={labelClass}>Host URL/IP Address <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  value={vendorHostUrl}
+                  onChange={(e) => setVendorHostUrl(e.target.value)}
+                  placeholder="smpp.vendor-gateway.net or 192.168.10.4"
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>Port Number <span className="text-red-500">*</span></label>
+                <input
+                  type="number"
+                  value={vendorPort}
+                  onChange={(e) => setVendorPort(e.target.value)}
+                  placeholder="2775"
+                  className={inputClass}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className={labelClass}>SMPP Username (System ID) <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  value={vendorUsername}
+                  onChange={(e) => setVendorUsername(e.target.value)}
+                  placeholder="Enter Username"
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>SMPP Password <span className="text-red-500">*</span></label>
+                <input
+                  type="password"
+                  value={vendorPassword}
+                  onChange={(e) => setVendorPassword(e.target.value)}
+                  placeholder="●●●●●●●●●"
+                  className={inputClass}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {trunkType === 'Vendor' && activeVendorTab === 'ADVANCED_SMPP' && (
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 shadow-sm space-y-6 animate-in fade-in duration-300">
+            <div>
+              <h4 className="text-[12px] font-black uppercase text-[#428bca] tracking-widest flex items-center gap-2">
+                <Cpu className="w-4 h-4 text-[#428bca]" /> ADVANCED SMPP SETTINGS
+              </h4>
+              <p className="text-[9px] text-zinc-400 font-bold uppercase mt-1">Configure transaction buffers, keep-alive links and speed limits</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className={labelClass}>Window Size <span className="text-red-500">*</span></label>
+                <input
+                  type="number"
+                  value={vendorWindowSize}
+                  onChange={(e) => setVendorWindowSize(e.target.value)}
+                  className={inputClass}
+                />
+                <p className="text-[8px] text-zinc-400 mt-1 uppercase leading-tight">outstanding unacknowledged links</p>
+              </div>
+
+              <div>
+                <label className={labelClass}>Enquire Link (Secs)</label>
+                <input
+                  type="number"
+                  value={vendorEnquireLink}
+                  onChange={(e) => setVendorEnquireLink(e.target.value)}
+                  className={inputClass}
+                />
+                <p className="text-[8px] text-zinc-400 mt-1 uppercase leading-tight">Keep alive signal delay</p>
+              </div>
+
+              <div>
+                <label className={labelClass}>Response Timeout (ms)</label>
+                <input
+                  type="number"
+                  value={vendorResponseTimeout}
+                  onChange={(e) => setVendorResponseTimeout(e.target.value)}
+                  className={inputClass}
+                />
+                <p className="text-[8px] text-zinc-400 mt-1 uppercase leading-tight">Failure socket drop timer</p>
+              </div>
+
+              <div>
+                <label className={labelClass}>Reconnect Delay (Secs)</label>
+                <input
+                  type="number"
+                  value={vendorReconnectDelay}
+                  onChange={(e) => setVendorReconnectDelay(e.target.value)}
+                  className={inputClass}
+                />
+                <p className="text-[8px] text-zinc-400 mt-1 uppercase leading-tight">Socket cool-down retry rule</p>
+              </div>
+            </div>
+
+            <div className="border-t border-zinc-100 dark:border-zinc-800 pt-6">
+              <label className={labelClass}>Transaction Throttle Limit (TPS)</label>
+              <div className="flex gap-4 items-center">
+                <input
+                  type="number"
+                  value={vendorThrottleLimit}
+                  onChange={(e) => setVendorThrottleLimit(e.target.value)}
+                  className={cn(inputClass, "w-40 font-mono font-bold text-[#428bca]")}
+                />
+                <span className="text-[10px] text-zinc-400 uppercase font-bold">Max Transactions Per Second permitted on this bind</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {trunkType === 'Vendor' && activeVendorTab === 'COMMITMENT' && (
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 shadow-sm space-y-6 animate-in fade-in duration-300">
+            <div>
+              <h4 className="text-[12px] font-black uppercase text-[#428bca] tracking-widest flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-[#428bca]" /> COMMITMENT & VOLUME CLAUSES
+              </h4>
+              <p className="text-[9px] text-zinc-400 font-bold uppercase mt-1">Configure minimum volumes and shortcount fallback triggers</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className={labelClass}>Commitment Rule Profile <span className="text-red-500">*</span></label>
+                <select
+                  value={vendorCommitmentRule}
+                  onChange={(e) => setVendorCommitmentRule(e.target.value)}
+                  className={inputClass}
+                >
+                  <option value="NONE">No Commitment Clause</option>
+                  <option value="DAILY_VOLUME">Daily Committed Volume Required</option>
+                  <option value="MONTLY_CLAUSE">Monthly Tiered Shortage Penalty</option>
+                </select>
+              </div>
+
+              <div>
+                <label className={labelClass}>Committed Volume Target (SMS)</label>
+                <input
+                  type="number"
+                  value={vendorCommitmentTarget}
+                  onChange={(e) => setVendorCommitmentTarget(e.target.value)}
+                  disabled={vendorCommitmentRule === 'NONE'}
+                  className={inputClass}
+                  placeholder="0"
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>Penalty Flat-Rate per missed SMS ($)</label>
+                <input
+                  type="text"
+                  value={vendorCommitmentPenalty}
+                  onChange={(e) => setVendorCommitmentPenalty(e.target.value)}
+                  disabled={vendorCommitmentRule === 'NONE'}
+                  className={cn(inputClass, "font-mono")}
+                  placeholder="e.g. 0.001"
+                />
               </div>
             </div>
           </div>

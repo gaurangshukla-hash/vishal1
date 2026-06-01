@@ -4,7 +4,7 @@ import {
   Plus, Edit2, Copy, Eye, Send, Trash2, History, RotateCcw, 
   Search, Save, X, Calendar, Download, Upload, Info, MapPin, Phone, Mail, 
   CreditCard, Landmark, Wallet, Globe, FileText, Server, Users, Zap, DollarSign,
-  Check
+  Check, Settings
 } from 'lucide-react';
 import { EnterpriseForm } from './EnterpriseForms';
 import { DynamicRoutingForm } from './RouteForms';
@@ -17,7 +17,12 @@ interface EnterpriseDetailsViewProps {
 export function EnterpriseDetailsView({ theme }: EnterpriseDetailsViewProps) {
   const [activeTab, setActiveTab] = React.useState('Customer Trunk');
   const [selectedTrunk, setSelectedTrunk] = React.useState<any>(null);
-  const [viewMode, setViewMode] = React.useState<'list' | 'add_enterprise' | 'edit_enterprise' | 'view_enterprise' | 'add_customer' | 'add_customer_account' | 'edit_customer' | 'view_customer' | 'dynamic_routing' | 'add_vendor' | 'add_vendor_account' | 'edit_vendor' | 'view_vendor' | 'deploy_switch' | 'send_rate'>('list');
+  const [viewMode, setViewMode] = React.useState<
+    'list' | 'add_enterprise' | 'edit_enterprise' | 'view_enterprise' |
+    'add_customer' | 'add_customer_account' | 'edit_customer' | 'view_customer' |
+    'dynamic_routing' | 'add_vendor' | 'add_vendor_account' | 'edit_vendor' | 'view_vendor' |
+    'deploy_switch' | 'send_rate'
+  >('list');
   const tabs = ['Vendor Trunk', 'Customer Trunk'];
 
   const [showRoutingRules, setShowRoutingRules] = React.useState(false);
@@ -32,7 +37,7 @@ export function EnterpriseDetailsView({ theme }: EnterpriseDetailsViewProps) {
   }
 
   if (viewMode === 'dynamic_routing') {
-    return (
+     return (
       <div className="flex justify-center items-start pt-4 px-4 overflow-auto max-h-[calc(100vh-100px)]">
         <DynamicRoutingForm theme={theme} onClose={() => setViewMode('list')} trunk={selectedTrunk} />
       </div>
@@ -83,6 +88,7 @@ export function EnterpriseDetailsView({ theme }: EnterpriseDetailsViewProps) {
             onAddAccount={() => setViewMode('add_vendor_account')}
             onView={() => setViewMode('view_vendor')}
             onEdit={() => setViewMode('edit_vendor')}
+            onSupplierSetup={() => setViewMode('supplier_setup')}
             onShowRates={(trunk) => {
               setSelectedTrunkForRules(trunk);
               setShowVendorRates(true);
@@ -439,7 +445,7 @@ function RoutingRulesModal({ trunk, theme, onClose }: { trunk: any, theme: 'ligh
               <div className="font-black text-zinc-800 dark:text-zinc-100 uppercase">{trunk.productAssign || 'Wholesale Standard'}</div>
             </div>
             <div className="bg-emerald-50 dark:bg-emerald-900/10 p-3 rounded-lg border border-emerald-100 dark:border-emerald-800">
-              <div className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-1">Product Category</div>
+              <div className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-1">Category</div>
               <div className="font-black text-zinc-800 dark:text-zinc-100 uppercase">{trunk.planCategory || 'WHS'}</div>
             </div>
             <div className="bg-amber-50 dark:bg-amber-900/10 p-3 rounded-lg border border-amber-100 dark:border-amber-800">
@@ -992,7 +998,8 @@ function TrunkTab({
   onShowCustomerRate,
   onShowSupplierDetails,
   onShowRates,
-  onDeploySwitch 
+  onDeploySwitch,
+  onSupplierSetup
 }: { 
   type: 'Vendor' | 'Customer', 
   theme: 'light' | 'dark', 
@@ -1012,7 +1019,8 @@ function TrunkTab({
   onShowCustomerRate?: (trunk: any) => void,
   onShowSupplierDetails?: (trunk: any) => void,
   onShowRates?: (trunk: any) => void,
-  onDeploySwitch?: () => void 
+  onDeploySwitch?: () => void,
+  onSupplierSetup?: () => void
 }) {
   const columns = type === 'Customer' 
     ? ['CUSTOMER ID', 'CUSTOMER NAME', 'CUSTOMER ACCOUNT NAME', 'PRODUCT ASSIGN', 'STATUS', 'RATE']
@@ -1048,13 +1056,15 @@ function TrunkTab({
         )}
 
         {type === 'Vendor' && (
-          <button 
-            onClick={() => onAddAccount?.()}
-            disabled={!selectedTrunk}
-            className={cn(btnClass, "bg-[#5cb85c] hover:bg-green-600 disabled:opacity-50 disabled:grayscale")}
-          >
-            <Plus className="w-3.5 h-3.5" /> Add Supplier Account
-          </button>
+          <>
+            <button 
+              onClick={() => onAddAccount?.()}
+              disabled={!selectedTrunk}
+              className={cn(btnClass, "bg-[#5cb85c] hover:bg-green-600 disabled:opacity-50 disabled:grayscale")}
+            >
+              <Plus className="w-3.5 h-3.5" /> Add Supplier Account
+            </button>
+          </>
         )}
 
         <button 

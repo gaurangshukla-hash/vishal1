@@ -11,6 +11,34 @@ export function DetailsView({ title, theme }: DetailsViewProps) {
   const [activeTab, setActiveTab] = useState('General Info');
   const [showAddForm, setShowAddForm] = useState(false);
 
+  // Core Persistent Trunk State Data
+  const [vendorTrunks, setVendorTrunks] = useState([
+    { id: 'VT_101', name: 'Digiwhilff_DIR_IN', user: 'DigiWhDIR', cat: 'DIRECT', rule: 'ABC Direct TRG', proto: 'SMPP', tps: '100', status: 'Active', updated: 'Admin User' },
+    { id: 'VT_102', name: 'Trunk_cliente_itelvox_out', user: 'itelvox_out', cat: 'WHOLESALE', rule: 'None', proto: 'HTTP', tps: '50', status: 'Active', updated: 'Francisco Cieza' },
+    { id: 'VT_103', name: 'V_ABC', user: 'V_ABC_user', cat: 'PREMIUM', rule: 'None', proto: 'SMPP', tps: '10', status: 'Active', updated: 'Admin User' }
+  ]);
+
+  const [customerTrunks, setCustomerTrunks] = useState([
+    { id: 'CT_201', name: 'Trunk_cliente_itelvox', user: 'cliente_itelvox', product: 'Aakash_DIR_IN (2)', assign: 'STANDARD', rule: 'ABC Direct TRG', proto: 'HTTP', tps: '5', status: 'Active', updated: 'Francisco Cieza' },
+    { id: 'CT_202', name: 'Aakash_DIR_IN_Client', user: 'Aakash_User', product: 'Aakash_DIR_IN (2)', assign: 'CUSTOM', rule: 'None', proto: 'SMPP', tps: '80', status: 'Active', updated: 'Admin User' },
+    { id: 'CT_203', name: 'abcd_test2C_ANI_TR', user: 'abcd_user', product: 'V_ABC (10)', assign: 'STANDARD', rule: 'None', proto: 'SMPP', tps: '15', status: 'Active', updated: 'Admin User' }
+  ]);
+
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [searchFilters, setSearchFilters] = useState<Record<string, string>>({});
+  
+  // Form values
+  const [formTrunkName, setFormTrunkName] = useState('');
+  const [formProtocol, setFormProtocol] = useState('SMPP');
+  const [formRuleGroup, setFormRuleGroup] = useState('Select');
+  const [formCategory, setFormCategory] = useState('DIRECT');
+  const [formAssign, setFormAssign] = useState('STANDARD');
+  const [formStatus, setFormStatus] = useState('Active');
+  const [formUsername, setFormUsername] = useState('');
+  const [formTps, setFormTps] = useState('100');
+  const [formProduct, setFormProduct] = useState('Aakash_DIR_IN (2)');
+  const [editItem, setEditItem] = useState<any | null>(null);
+
   const tabs = [
     'General Info', 'Docs', 'Billing', 'Vendor Trunk', 'Customer Trunk'
   ];
@@ -110,68 +138,246 @@ export function DetailsView({ title, theme }: DetailsViewProps) {
     }
   };
 
+  const getRowVal = (row: any, header: string): string => {
+    switch (header) {
+      case 'TRUNK ID': return row.id || '';
+      case 'TRUNK NAME': return row.name || '';
+      case 'USERNAME': return row.user || '';
+      case 'PRODUCT': return row.product || 'Standard';
+      case 'SUPPLIER CATEGORY': return row.cat || 'DIRECT';
+      case 'PRODUCT ASSIGN': return row.assign || 'STANDARD';
+      case 'TRANSLATION RULE GROUP': return row.rule || 'None';
+      case 'PROTOCOL': return row.proto || 'SMPP';
+      case 'TPS': return row.tps || '100';
+      case 'STATUS': return row.status || 'Active';
+      case 'UPDATED BY': return row.updated || 'Admin User';
+      default: return '';
+    }
+  };
+
+  const handleActionClick = (actionName: string) => {
+    if (actionName === 'Edit') {
+      if (selectedIds.length !== 1) {
+        alert("Please select exactly one trunk to edit.");
+        return;
+      }
+      const targetId = selectedIds[0];
+      const itemToEdit = (activeTab === 'Vendor Trunk' ? vendorTrunks : customerTrunks).find(t => t.id === targetId);
+      if (itemToEdit) {
+        setEditItem(itemToEdit);
+        setFormTrunkName(itemToEdit.name || '');
+        setFormUsername(itemToEdit.user || '');
+        setFormProtocol(itemToEdit.proto || 'SMPP');
+        setFormRuleGroup(itemToEdit.rule === 'None' ? 'Select' : (itemToEdit.rule || 'Select'));
+        setFormCategory(itemToEdit.cat || 'DIRECT');
+        setFormAssign(itemToEdit.assign || 'STANDARD');
+        setFormStatus(itemToEdit.status || 'Active');
+        setFormTps(itemToEdit.tps || '100');
+        setShowAddForm(true);
+      }
+      setSelectedIds([]);
+    } else if (actionName === 'Clone') {
+      if (selectedIds.length !== 1) {
+        alert("Please select exactly one trunk to clone.");
+        return;
+      }
+      const targetId = selectedIds[0];
+      const itemToClone = (activeTab === 'Vendor Trunk' ? vendorTrunks : customerTrunks).find(t => t.id === targetId);
+      if (itemToClone) {
+        const nextId = (activeTab === 'Vendor Trunk' ? 'VT_' : 'CT_') + (100 + Math.floor(Math.random() * 900)) + '_CL';
+        const cloned = { ...itemToClone, id: nextId, name: (itemToClone.name || '') + ' (Copy)' };
+        if (activeTab === 'Vendor Trunk') {
+          setVendorTrunks([cloned, ...vendorTrunks]);
+        } else {
+          setCustomerTrunks([cloned, ...customerTrunks]);
+        }
+        alert(`Cloned successfully! New trunk created: ${cloned.name}`);
+      }
+      setSelectedIds([]);
+    } else if (actionName === 'Delete' || actionName === 'Delete History') {
+      if (selectedIds.length === 0) {
+        alert("Please select at least one trunk row to delete.");
+        return;
+      }
+      if (confirm(`Are you sure you want to delete selected trunk(s): ${selectedIds.join(', ')}?`)) {
+        if (activeTab === 'Vendor Trunk') {
+          setVendorTrunks(vendorTrunks.filter(t => !selectedIds.includes(t.id)));
+        } else {
+          setCustomerTrunks(customerTrunks.filter(t => !selectedIds.includes(t.id)));
+        }
+        alert("Deleted selected trunks successfully.");
+        setSelectedIds([]);
+      }
+    } else if (actionName === 'Clear') {
+      if (confirm("Are you sure you want to clear all records?")) {
+        if (activeTab === 'Vendor Trunk') {
+          setVendorTrunks([]);
+        } else {
+          setCustomerTrunks([]);
+        }
+        setSelectedIds([]);
+      }
+    } else if (actionName === 'View') {
+      if (selectedIds.length !== 1) {
+        alert("Please select exactly one trunk to view details.");
+        return;
+      }
+      const item = (activeTab === 'Vendor Trunk' ? vendorTrunks : customerTrunks).find(t => t.id === selectedIds[0]);
+      alert(`Trunk Details Sheet:\n\n${JSON.stringify(item, null, 2)}`);
+    } else {
+      // General commands like Send Rate, Send Tech Info, Rate History
+      if (selectedIds.length === 0) {
+        alert(`Please select trunks to apply: ${actionName}`);
+        return;
+      }
+      alert(`Action "${actionName}" applied successfully for trunk IDs: ${selectedIds.join(', ')}`);
+    }
+  };
+
+  const handleCheckboxToggle = (id: string) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter(x => x !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
+  const handleSelectAll = (filteredRows: any[]) => {
+    const filteredIds = filteredRows.map(r => r.id);
+    const allSelected = filteredIds.every(id => selectedIds.includes(id));
+    if (allSelected) {
+      setSelectedIds(selectedIds.filter(id => !filteredIds.includes(id)));
+    } else {
+      const union = Array.from(new Set([...selectedIds, ...filteredIds]));
+      setSelectedIds(union);
+    }
+  };
+
   const renderTable = (headers: string[], actions?: string[]) => {
-    const data = headers.includes('TRUNK ID') ? [
-      { id: '89', name: 'Digiwhilff_DIR_IN', user: 'DigiWhDIR', cat: 'DIRECT', rule: 'ABC Direct TRG', proto: 'SMPP', tps: '100', status: 'Active', updated: 'Admin User' },
-      { id: '87', name: 'Trunk_cliente_itelvox', user: 'cliente_itelvox', cat: 'DIRECT', rule: 'ABC Direct TRG', proto: 'HTTP', tps: '5', status: 'Active', updated: 'Francisco Cieza' },
-    ] : [];
+    // Dynamically filter active tab trunks data based on search filters
+    const currentList = activeTab === 'Vendor Trunk' ? vendorTrunks : customerTrunks;
+    const filteredData = currentList.filter(row => {
+      return headers.every(header => {
+        const val = getRowVal(row, header).toLowerCase();
+        const searchVal = (searchFilters[header] || '').toLowerCase();
+        return val.includes(searchVal);
+      });
+    });
+
+    const isAllFilteredSelected = filteredData.length > 0 && filteredData.every(r => selectedIds.includes(r.id));
 
     return (
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
-        <div className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/30 flex justify-end gap-2">
-          <button 
-            onClick={() => setShowAddForm(true)}
-            className="px-4 py-1 bg-[#428bca] text-white text-[11px] font-bold rounded hover:bg-blue-600 flex items-center gap-2"
-          >
-            <Plus className="w-3.5 h-3.5" /> Add
-          </button>
-          {actions && actions.map(action => (
-            <button key={action} className={cn(
-              "px-3 py-1 text-white text-[11px] font-bold rounded flex items-center gap-1.5",
-              action === 'Edit' ? "bg-[#5cb85c] hover:bg-green-600" : 
-              action === 'Clone' ? "bg-[#428bca] hover:bg-blue-600" :
-              action === 'View' ? "bg-[#428bca] hover:bg-blue-600" :
-              "bg-zinc-500"
-            )}>
-              {action}
+        <div className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/30 flex justify-between items-center gap-2 flex-wrap">
+          <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+            {selectedIds.length} Selected / {filteredData.length} Matched
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            <button 
+              onClick={() => {
+                setEditItem(null);
+                setFormTrunkName('');
+                setFormUsername('');
+                setFormProtocol('SMPP');
+                setFormRuleGroup('Select');
+                setFormCategory('DIRECT');
+                setFormAssign('STANDARD');
+                setFormStatus('Active');
+                setFormTps('100');
+                setShowAddForm(true);
+              }}
+              className="px-4 py-1 bg-[#428bca] text-white text-[11px] font-bold rounded hover:bg-blue-600 flex items-center gap-2 shadow-sm transition-all"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add New
             </button>
-          ))}
+            {actions && actions.map(action => (
+              <button 
+                key={action} 
+                onClick={() => handleActionClick(action)}
+                className={cn(
+                  "px-3 py-1 text-white text-[11px] font-bold rounded flex items-center gap-1.5 shadow-sm transition-all",
+                  action === 'Edit' ? "bg-[#5cb85c] hover:bg-green-600" : 
+                  action === 'Clone' ? "bg-[#428bca] hover:bg-blue-600" :
+                  action === 'View' ? "bg-zinc-600 hover:bg-zinc-700" :
+                  action === 'Delete' || action === 'Delete History' ? "bg-[#d9534f] hover:bg-red-600" :
+                  "bg-[#5bc0de] hover:bg-cyan-600"
+                )}
+              >
+                {action}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto select-none">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-800">
-                <th className="px-4 py-2 w-10">
-                  <input type="checkbox" className="rounded border-zinc-300 dark:border-zinc-600" />
+                <th className="px-4 py-2 w-10 text-center">
+                  <input 
+                    type="checkbox" 
+                    checked={isAllFilteredSelected}
+                    onChange={() => handleSelectAll(filteredData)}
+                    className="rounded border-zinc-300 dark:border-zinc-600 cursor-pointer text-brand-500 focus:ring-brand-500" 
+                  />
                 </th>
                 {headers.map(h => (
-                  <th key={h} className="px-4 py-2 text-[10px] font-black uppercase text-zinc-500 tracking-wider border-r border-zinc-200 dark:border-zinc-800 last:border-r-0 whitespace-nowrap">
-                    <div className="flex flex-col gap-1">
-                      {h}
-                      <input type="text" placeholder="Search" className="w-full px-2 py-1 text-[10px] font-normal border border-zinc-200 dark:border-zinc-700 rounded bg-white dark:bg-zinc-800 outline-none" />
+                  <th key={h} className="px-4 py-2 text-[10px] font-black uppercase text-zinc-500 tracking-wider border-r border-zinc-200 dark:border-zinc-800 last:border-r-0 whitespace-nowrap min-w-[120px]">
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-zinc-700 dark:text-zinc-300">{h}</span>
+                      <div className="relative">
+                        <input 
+                          type="text" 
+                          value={searchFilters[h] || ''}
+                          onChange={(e) => setSearchFilters({ ...searchFilters, [h]: e.target.value })}
+                          placeholder="Search..." 
+                          className="w-full pl-6 pr-2 py-0.5 text-[10px] font-normal border border-zinc-200 dark:border-zinc-700 rounded bg-white dark:bg-zinc-800 outline-none focus:border-[#428bca] transition-colors" 
+                        />
+                        <Search className="w-3 h-3 text-zinc-400 absolute left-1.5 top-1/2 -translate-y-1/2" />
+                      </div>
                     </div>
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {data.length > 0 ? data.map((row, i) => (
-                <tr key={i} className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50/50 dark:hover:bg-white/5 transition-colors">
-                  <td className="px-4 py-2"><input type="checkbox" /></td>
-                  <td className="px-4 py-2 text-[11px] text-[#428bca] font-bold">{row.id}</td>
-                  <td className="px-4 py-2 text-[11px] font-medium">{row.name}</td>
-                  <td className="px-4 py-2 text-[11px] font-medium">{row.user}</td>
-                  <td className="px-4 py-2 text-[11px] font-medium">{row.cat}</td>
-                  <td className="px-4 py-2 text-[11px] font-medium">{row.rule}</td>
-                  <td className="px-4 py-2 text-[11px] font-medium">{row.proto}</td>
-                  <td className="px-4 py-2 text-[11px] font-medium">{row.tps}</td>
-                  <td className="px-4 py-2 text-[11px] font-medium text-emerald-600 font-bold">{row.status}</td>
-                  <td className="px-4 py-2 text-[11px] font-medium">{row.updated}</td>
+              {filteredData.length > 0 ? filteredData.map((row) => (
+                <tr 
+                  key={row.id} 
+                  onClick={() => handleCheckboxToggle(row.id)}
+                  className={cn(
+                    "border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50/50 dark:hover:bg-white/5 transition-colors cursor-pointer",
+                    selectedIds.includes(row.id) && "bg-blue-50/40 dark:bg-zinc-800/40"
+                  )}
+                >
+                  <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                    <input 
+                      type="checkbox" 
+                      checked={selectedIds.includes(row.id)}
+                      onChange={() => handleCheckboxToggle(row.id)}
+                      className="cursor-pointer" 
+                    />
+                  </td>
+                  {headers.map((h, colIdx) => (
+                    <td key={colIdx} className="px-4 py-3 text-[11px] font-medium whitespace-nowrap max-w-[200px] truncate">
+                      {h === 'TRUNK ID' ? (
+                        <span className="text-[#428bca] font-bold">{getRowVal(row, h)}</span>
+                      ) : h === 'STATUS' ? (
+                        <span className={cn(
+                          "px-1.5 py-0.5 rounded text-[9px] font-black uppercase text-white shadow-xs",
+                          getRowVal(row, h) === 'Active' ? "bg-emerald-500" : "bg-red-400"
+                        )}>
+                          {getRowVal(row, h)}
+                        </span>
+                      ) : (
+                        <span className="text-zinc-700 dark:text-zinc-200">{getRowVal(row, h)}</span>
+                      )}
+                    </td>
+                  ))}
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={headers.length + 1} className="px-4 py-8 text-center text-[11px] text-zinc-400 italic">
-                    No data available in table
+                  <td colSpan={headers.length + 1} className="px-4 py-12 text-center text-[11px] text-zinc-400 italic bg-zinc-50/10">
+                    No matching trunk records found
                   </td>
                 </tr>
               )}
@@ -182,13 +388,74 @@ export function DetailsView({ title, theme }: DetailsViewProps) {
     );
   };
 
+  const handleSaveTrunk = () => {
+    if (!formTrunkName.trim()) {
+      alert("Please specify a valid trunk name!");
+      return;
+    }
+    const safeUser = formUsername.trim() || 'user_' + Math.floor(Math.random() * 1000);
+    const rules = formRuleGroup === 'Select' ? 'None' : formRuleGroup;
+    const isEditing = editItem != null;
+    
+    if (activeTab === 'Vendor Trunk') {
+      const updatedRow = {
+        id: isEditing ? editItem.id : 'VT_' + (100 + Math.floor(Math.random() * 900)),
+        name: formTrunkName,
+        user: safeUser,
+        cat: formCategory,
+        rule: rules,
+        proto: formProtocol,
+        tps: formTps,
+        status: formStatus,
+        updated: 'Admin User'
+      };
+      if (isEditing) {
+        setVendorTrunks(vendorTrunks.map(t => t.id === editItem.id ? updatedRow : t));
+      } else {
+        setVendorTrunks([updatedRow, ...vendorTrunks]);
+      }
+    } else {
+      const updatedRow = {
+        id: isEditing ? editItem.id : 'CT_' + (200 + Math.floor(Math.random() * 900)),
+        name: formTrunkName,
+        user: safeUser,
+        product: formProduct,
+        assign: formAssign,
+        rule: rules,
+        proto: formProtocol,
+        tps: formTps,
+        status: formStatus,
+        updated: 'Admin User'
+      };
+      if (isEditing) {
+        setCustomerTrunks(customerTrunks.map(t => t.id === editItem.id ? updatedRow : t));
+      } else {
+        setCustomerTrunks([updatedRow, ...customerTrunks]);
+      }
+    }
+
+    // Reset Form values
+    setFormTrunkName('');
+    setFormUsername('');
+    setFormProtocol('SMPP');
+    setFormRuleGroup('Select');
+    setFormCategory('DIRECT');
+    setFormAssign('STANDARD');
+    setFormStatus('Active');
+    setFormTps('100');
+    setEditItem(null);
+    setShowAddForm(false);
+  };
+
   const renderAddForm = () => (
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded shadow-md animate-in zoom-in-95 duration-300">
       <div className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/30 flex justify-between items-center">
-        <h3 className="text-xs font-bold text-zinc-800 dark:text-zinc-200">Enterprise / {activeTab} <span className="font-normal text-zinc-400">/ Add</span></h3>
+        <h3 className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+          Enterprise / {activeTab} <span className="font-normal text-zinc-400">/ {editItem ? 'Edit ID: ' + editItem.id : 'Add New'}</span>
+        </h3>
         <div className="flex gap-2">
-          <button onClick={() => setShowAddForm(false)} className="px-4 py-1.5 bg-[#428bca] text-white text-[11px] font-bold rounded hover:bg-blue-600 shadow-sm transition-all">Save</button>
-          <button onClick={() => setShowAddForm(false)} className="px-4 py-1.5 bg-[#d9534f] text-white text-[11px] font-bold rounded hover:bg-red-600 shadow-sm transition-all">Cancel</button>
+          <button onClick={handleSaveTrunk} className="px-4 py-1.5 bg-[#428bca] text-white text-[11px] font-bold rounded hover:bg-blue-600 shadow-sm transition-all">Save</button>
+          <button onClick={() => { setShowAddForm(false); setEditItem(null); }} className="px-4 py-1.5 bg-[#d9534f] text-white text-[11px] font-bold rounded hover:bg-red-600 shadow-sm transition-all">Cancel</button>
         </div>
       </div>
       <div className="p-6 space-y-8">
@@ -200,46 +467,110 @@ export function DetailsView({ title, theme }: DetailsViewProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-tighter">Trunk Name <span className="text-red-500">*</span></label>
-              <input type="text" className="w-full h-9 px-3 border border-zinc-200 dark:border-zinc-700 rounded bg-white dark:bg-zinc-800 text-[12px] outline-none focus:border-brand-500 transition-colors" />
+              <input 
+                type="text" 
+                value={formTrunkName}
+                onChange={(e) => setFormTrunkName(e.target.value)}
+                placeholder="Enter trunk descriptor"
+                className="w-full h-9 px-3 border border-zinc-200 dark:border-zinc-700 rounded bg-white dark:bg-zinc-800 text-[12px] outline-none focus:border-[#428bca] transition-colors" 
+              />
             </div>
             <div className="space-y-1.5 text-[11px] font-bold text-zinc-500">
               <label className="uppercase tracking-tighter block mb-2">Protocol <span className="text-red-500">*</span></label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 cursor-pointer font-bold"><input name="proto" type="radio" className="w-4 h-4" defaultChecked /> <span className="text-zinc-800 dark:text-zinc-200">SMPP</span></label>
-                <label className="flex items-center gap-2 cursor-pointer font-normal"><input name="proto" type="radio" className="w-4 h-4" /> <span className="text-zinc-600 dark:text-zinc-400">HTTP</span></label>
+              <div className="flex gap-4 pt-1.5">
+                <label className="flex items-center gap-2 cursor-pointer font-bold">
+                  <input 
+                    name="proto" 
+                    type="radio" 
+                    className="w-4 h-4 cursor-pointer text-[#428bca]" 
+                    checked={formProtocol === 'SMPP'}
+                    onChange={() => setFormProtocol('SMPP')}
+                  /> 
+                  <span className="text-zinc-800 dark:text-zinc-200">SMPP</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer font-bold">
+                  <input 
+                    name="proto" 
+                    type="radio" 
+                    className="w-4 h-4 cursor-pointer text-[#428bca]" 
+                    checked={formProtocol === 'HTTP'}
+                    onChange={() => setFormProtocol('HTTP')}
+                  /> 
+                  <span className="text-zinc-800 dark:text-zinc-200">HTTP</span>
+                </label>
               </div>
             </div>
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-tighter">Translation Rule Group</label>
-              <select className="w-full h-9 px-3 border border-zinc-200 dark:border-zinc-700 rounded bg-white dark:bg-zinc-800 text-[12px] outline-none">
-                <option>Select</option>
+              <select 
+                value={formRuleGroup}
+                onChange={(e) => setFormRuleGroup(e.target.value)}
+                className="w-full h-9 px-3 border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded text-[12px] outline-none"
+              >
+                <option value="Select">None</option>
+                <option value="ABC Direct TRG">ABC Direct TRG</option>
+                <option value="Premium Filter Rule">Premium Filter Rule</option>
+                <option value="Wholesale Rule Group">Wholesale Rule Group</option>
               </select>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-tighter">Billing Type</label>
-              <select className="w-full h-9 px-3 border border-zinc-200 dark:border-zinc-700 rounded bg-white dark:bg-zinc-800 text-[12px] outline-none">
-                <option>Submit</option>
-                <option>DLR</option>
-              </select>
-            </div>
+            {activeTab === 'Customer Trunk' ? (
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-tighter">Product Assign</label>
+                <select 
+                  value={formAssign}
+                  onChange={(e) => setFormAssign(e.target.value)}
+                  className="w-full h-9 px-3 border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded text-[12px] outline-none"
+                >
+                  <option value="STANDARD">STANDARD</option>
+                  <option value="CUSTOM">CUSTOM</option>
+                  <option value="VIP_LINE">VIP_LINE</option>
+                </select>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-tighter">Billing Type</label>
+                <select className="w-full h-9 px-3 border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded text-[12px] outline-none">
+                  <option value="Submit">Submit</option>
+                  <option value="DLR">DLR</option>
+                </select>
+              </div>
+            )}
             <div className="space-y-1.5 text-[11px] font-bold text-zinc-500">
               <label className="uppercase tracking-tighter block mb-2">Status <span className="text-red-500">*</span></label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 cursor-pointer font-bold"><input name="status" type="radio" className="w-4 h-4 text-emerald-500" defaultChecked /> <span className="text-emerald-600">Active</span></label>
-                <label className="flex items-center gap-2 cursor-pointer font-normal"><input name="status" type="radio" className="w-4 h-4" /> <span className="text-zinc-600 dark:text-zinc-400">Inactive</span></label>
+              <div className="flex gap-4 pt-1.5">
+                <label className="flex items-center gap-2 cursor-pointer font-bold">
+                  <input 
+                    name="status" 
+                    type="radio" 
+                    className="w-4 h-4 cursor-pointer text-emerald-500" 
+                    checked={formStatus === 'Active'}
+                    onChange={() => setFormStatus('Active')}
+                  /> 
+                  <span className="text-[#5cb85c]">Active</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer font-bold">
+                  <input 
+                    name="status" 
+                    type="radio" 
+                    className="w-4 h-4 cursor-pointer text-red-500" 
+                    checked={formStatus === 'Inactive'}
+                    onChange={() => setFormStatus('Inactive')}
+                  /> 
+                  <span className="text-red-500">Inactive</span>
+                </label>
               </div>
             </div>
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-tighter">Bind Type</label>
-              <select className="w-full h-9 px-3 border border-zinc-200 dark:border-zinc-700 rounded bg-white dark:bg-zinc-800 text-[12px] outline-none" defaultValue="AUTO">
-                <option>AUTO</option>
-                <option>MANUAL</option>
+              <select className="w-full h-9 px-3 border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded text-[12px] outline-none" defaultValue="AUTO">
+                <option value="AUTO">AUTO</option>
+                <option value="MANUAL">MANUAL</option>
               </select>
             </div>
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-tighter">HLR Rule Group</label>
-              <select className="w-full h-9 px-3 border border-zinc-200 dark:border-zinc-700 rounded bg-white dark:bg-zinc-800 text-[12px] outline-none">
-                <option>Select</option>
+              <select className="w-full h-9 px-3 border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded text-[12px] outline-none">
+                <option value="Select">Select</option>
               </select>
             </div>
             <div className="flex items-center gap-8 pt-4">
@@ -262,7 +593,13 @@ export function DetailsView({ title, theme }: DetailsViewProps) {
             </div>
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-tighter">Username <span className="text-red-500">*</span></label>
-              <input type="text" className="w-full h-9 px-3 border border-zinc-200 dark:border-zinc-700 rounded bg-white dark:bg-zinc-800 text-[12px] outline-none" />
+              <input 
+                type="text" 
+                value={formUsername}
+                onChange={(e) => setFormUsername(e.target.value)}
+                placeholder="Enter connection login"
+                className="w-full h-9 px-3 border border-zinc-200 dark:border-zinc-700 rounded bg-white dark:bg-zinc-800 text-[12px] outline-none" 
+              />
             </div>
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-tighter">Password <span className="text-red-500">*</span></label>
@@ -296,7 +633,13 @@ export function DetailsView({ title, theme }: DetailsViewProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-tighter">TPS <span className="text-red-500">*</span></label>
-              <input type="text" className="w-full h-9 px-3 border border-zinc-200 dark:border-zinc-700 rounded bg-white dark:bg-zinc-800 text-[12px] outline-none" />
+              <input 
+                type="text" 
+                value={formTps}
+                onChange={(e) => setFormTps(e.target.value)}
+                placeholder="100"
+                className="w-full h-9 px-3 border border-zinc-200 dark:border-zinc-700 rounded bg-white dark:bg-zinc-800 text-[12px] outline-none" 
+              />
             </div>
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-tighter">Customer Overflow Buffer</label>
@@ -329,8 +672,13 @@ export function DetailsView({ title, theme }: DetailsViewProps) {
                 <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-tighter">Category <span className="text-red-500">*</span></label>
                 <div className="border border-zinc-200 dark:border-zinc-700 rounded p-4 space-y-2 bg-zinc-50/30">
                    {['DIRECT', 'HQ', 'SIM', 'WHS'].map(cat => (
-                     <label key={cat} className="flex items-center gap-2 text-[11px] cursor-pointer">
-                       <input type="radio" name="cat_select" defaultChecked={cat==='DIRECT'} /> {cat}
+                     <label key={cat} className="flex items-center gap-2 text-[11px] cursor-pointer font-bold">
+                       <input 
+                         type="radio" 
+                         name="cat_select" 
+                         checked={formCategory === cat}
+                         onChange={() => setFormCategory(cat)}
+                       /> {cat}
                      </label>
                    ))}
                    <div className="pt-2 text-[10px] text-zinc-400">Total Record(s) 11</div>

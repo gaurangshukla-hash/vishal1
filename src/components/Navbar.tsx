@@ -28,23 +28,19 @@ export function Navbar({ currentMenu, onMenuChange, theme }: NavbarProps) {
           <button
             onClick={() => onMenuChange(item.id)}
             className={cn(
-              "flex items-center gap-1 h-full px-3 text-xs font-bold uppercase tracking-wider transition-all duration-300 relative",
-              currentMenu === item.id
-                ? "text-brand-500 bg-brand-500/5"
+              "flex items-center gap-1 h-full px-3 text-xs font-bold uppercase tracking-wider transition-colors",
+              currentMenu === item.id 
+                ? "text-brand-500 bg-brand-500/5" 
                 : theme === 'light' ? "text-zinc-600 hover:text-brand-500" : "text-zinc-400 hover:text-brand-500"
             )}
           >
             {item.label}
-            {item.items && <ChevronDown className="w-3 h-3 opacity-50 transition-transform duration-300 group-hover:rotate-180" />}
-            <span className={cn(
-              "absolute bottom-0 left-0 right-0 h-0.5 bg-brand-500 transition-all duration-300",
-              currentMenu === item.id ? "w-full" : "w-0 group-hover:w-full"
-            )} />
+            {item.items && <ChevronDown className="w-3 h-3 opacity-50" />}
           </button>
 
           {item.items && activeDropdown === item.id && (
             <div className={cn(
-              "absolute top-full left-0 w-56 py-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl z-[100] rounded-b-md slide-in-right",
+              "absolute top-full left-0 w-56 py-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl z-[100] rounded-b-md",
               theme === 'dark' ? "text-white" : "text-black"
             )}>
               {item.items.map((subItem) => (
@@ -52,23 +48,23 @@ export function Navbar({ currentMenu, onMenuChange, theme }: NavbarProps) {
                   <button
                     onClick={() => onMenuChange(subItem.label)}
                     className={cn(
-                      "w-full text-left px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-50 dark:hover:bg-white/5 hover:text-brand-500 transition-all duration-300 flex items-center justify-between hover:translate-x-1",
+                      "w-full text-left px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-50 dark:hover:bg-white/5 hover:text-brand-500 transition-colors flex items-center justify-between",
                       theme === 'light' ? "text-zinc-600" : "text-zinc-400"
                     )}
                   >
                     {subItem.label}
-                    {subItem.items && <ChevronDown className="w-3 h-3 -rotate-90 opacity-50 transition-transform duration-300 group-hover/sub:rotate-0" />}
+                    {subItem.items && <ChevronDown className="w-3 h-3 -rotate-90 opacity-50" />}
                   </button>
 
                   {/* Second level dropdown */}
                   {subItem.items && (
-                    <div className="absolute top-0 left-full w-56 py-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl hidden group-hover/sub:block rounded-md ml-[1px] slide-in-right">
+                    <div className="absolute top-0 left-full w-56 py-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl hidden group-hover/sub:block rounded-md ml-[1px]">
                       {subItem.items.map((deepItem) => (
                         <button
                           key={deepItem.id}
                           onClick={() => onMenuChange(deepItem.label)}
                           className={cn(
-                            "w-full text-left px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-50 dark:hover:bg-white/5 hover:text-brand-500 transition-all duration-300 hover:translate-x-1",
+                            "w-full text-left px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-50 dark:hover:bg-white/5 hover:text-brand-500 transition-colors",
                             theme === 'light' ? "text-zinc-600" : "text-zinc-400"
                           )}
                         >

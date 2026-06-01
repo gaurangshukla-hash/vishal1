@@ -16,6 +16,10 @@ export const MOCK_DATA: Record<string, any[]> = {
     { 'Info ID': '1', 'Name': 'Monthly Net 30', 'Usage Days': '30', 'Due Days': '30', 'Billing Type': 'Postpaid', 'Updated By': 'Admin', 'Updated Time': '2023-12-15' },
     { 'Info ID': '2', 'Name': 'Weekly', 'Usage Days': '7', 'Due Days': '2', 'Billing Type': 'Prepaid', 'Updated By': 'System', 'Updated Time': '2024-01-01' },
   ],
+  'Vendor Invoice': [
+    { 'ID': 'VI-5001', 'Enterprise Name': 'TeleOSS Carrier', 'Vendor Trunk': 'VT_001_PREMIUM', 'Invoice Number': 'VEN-2026-90112', 'Charge Volume': '4,800,000', 'Charge Amount': '37,440.00', 'Invoice Date': '2026-05-01', 'Invoice Due Date': '2026-05-08', 'Invoice From Date': '2026-04-01', 'Invoice To Date': '2026-04-30', 'Dispute Amount': '0.00', 'Created By': 'Finance Head', 'Created Time': '2026-05-01 10:15:00' },
+    { 'ID': 'VI-5002', 'Enterprise Name': 'Airtel Carrier', 'Vendor Trunk': 'VT_ART_DIRECT', 'Invoice Number': 'INV-AIR-78553', 'Charge Volume': '9,200,000', 'Charge Amount': '38,640.00', 'Invoice Date': '2026-05-03', 'Invoice Due Date': '2026-05-10', 'Invoice From Date': '2026-04-01', 'Invoice To Date': '2026-04-30', 'Dispute Amount': '150.00', 'Created By': 'System', 'Created Time': '2026-05-03 04:00:12' }
+  ],
   'Product Category': [
     { 'Info ID': '10', 'Category Name': 'International', 'Updated By': 'Admin' },
     { 'Info ID': '20', 'Category Name': 'Local Premium', 'Updated By': 'Admin' },

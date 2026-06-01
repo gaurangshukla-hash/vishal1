@@ -120,7 +120,7 @@ export function AddRouteRuleForm({ onClose, theme }: FormProps) {
                 <FormRow label="Name" required>
                   <input type="text" className="flex-1 px-3 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded text-xs outline-none focus:border-blue-500" />
                 </FormRow>
-                <FormRow label="Product Category" required>
+                <FormRow label="Category" required>
                   <select className="flex-1 px-3 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded text-xs outline-none focus:border-blue-500">
                     <option>Select</option>
                   </select>

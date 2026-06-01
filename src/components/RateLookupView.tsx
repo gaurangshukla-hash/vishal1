@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { 
   Search, ChevronLeft, ChevronRight, Filter, Download, Zap, BarChart3, Globe, Plus, 
-  Trash2, ShieldAlert, X, Check, ArrowUpRight, ArrowDownRight, TrendingUp, AlertCircle, Play, Sparkles
+  Trash2, ShieldAlert, X, Check, ArrowUpRight, ArrowDownRight, TrendingUp, AlertCircle, Play, Sparkles,
+  Coins, Percent, SlidersHorizontal, Calculator, HelpCircle, RefreshCw
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { SupplierRateLookupPopup } from './ProductForms';
@@ -66,6 +67,17 @@ export function RateLookupView({ theme }: { theme: 'light' | 'dark' }) {
   const [showResults, setShowResults] = useState(false);
   const [supplierPopup, setSupplierPopup] = useState<string | null>(null);
   const [conflictNotification, setConflictNotification] = useState<string | null>(null);
+
+  // Advanced search filters for the Rate Analytics Active Matrix
+  const [countryFilter, setCountryFilter] = useState('');
+  const [prefixFilter, setPrefixFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('All');
+
+  // Dynamic Wholesale Revenue & Margin Simulator States
+  const [simPrefix, setSimPrefix] = useState('+91');
+  const [simBuyCost, setSimBuyCost] = useState('0.0012');
+  const [simMarkupPct, setSimMarkupPct] = useState('18');
+  const [simEstVol, setSimEstVol] = useState('2500000'); // 2.5 Million SMS default
 
   const [analyticsRates, setAnalyticsRates] = useState([
     { id: '1', country: 'United Arab Emirates', code: '+971', mccmnc: '42402', customer: 'Aakash_DIR_IN', sell: 0.0090, vendor: 'V_RESERVE', buy: 0.0085, margin: 0.0005, pct: 5.5, status: 'Squeezed', dlr: '97.2%' },
@@ -152,39 +164,82 @@ export function RateLookupView({ theme }: { theme: 'light' | 'dark' }) {
   ];
 
   const renderRateAnalytics = () => {
-    // Recharts data
-    const chartData = [
-      { name: 'India (+91)', Buy: 0.0011, Sell: 0.0015, Margin: 26.6 },
-      { name: 'Greece (+30)', Buy: 0.0040, Sell: 0.0050, Margin: 20.0 },
-      { name: 'UK (+44)', Buy: 0.0022, Sell: 0.0031, Margin: 29.0 },
-      { name: 'Vietnam (+84)', Buy: 0.0035, Sell: 0.0042, Margin: 16.6 },
-      { name: 'UAE (+971)', Buy: 0.0085, Sell: 0.0090, Margin: 5.5 },
-      { name: 'Germany (+49)', Buy: 0.0055, Sell: 0.0072, Margin: 23.6 },
-    ];
+    // Recharts data is dynamically calculated from live analyticsRates state to show real-time changes when optimized!
+    const chartData = analyticsRates.map(row => ({
+      name: `${row.country} (${row.code})`,
+      Buy: row.buy,
+      Sell: row.sell,
+      Margin: row.pct
+    }));
+
+    // Calculate dynamic wholesale simulation outputs
+    const simVolume = parseFloat(simEstVol) || 1000000;
+    const simCost = parseFloat(simBuyCost) || 0.0010;
+    const simMarkup = parseFloat(simMarkupPct) || 15;
+    
+    // Recommended Selling Rate = Buy Cost * (1 + (Markup / 100))
+    const simRecSell = simCost + (simCost * (simMarkup / 100));
+    const simNetProfitSingleSMS = simRecSell - simCost;
+    const simEstTotalRevenue = simVolume * simRecSell;
+    const simEstTotalProfit = simVolume * simNetProfitSingleSMS;
+
+    // Filter rates matrix dynamically
+    const filteredRates = analyticsRates.filter(row => {
+      const countryMatch = row.country.toLowerCase().includes(countryFilter.toLowerCase());
+      const codeMatch = row.code.includes(prefixFilter) || row.mccmnc.includes(prefixFilter);
+      const statusMatch = statusFilter === 'All' || row.status === statusFilter;
+      return countryMatch && codeMatch && statusMatch;
+    });
 
     return (
-      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-500">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-500 text-left w-full">
         
-        {/* TOP META-ANALYSIS SUMMARY */}
+        {/* SPECIALIZED OPERATIONAL INTRO GUIDE (ENGLISH & GUJARATI OVERVIEW) */}
+        <div className="p-6 bg-[#428bca]/5 dark:bg-zinc-800/40 border-l-4 border-[#428bca] rounded-r-2xl space-y-3">
+          <div className="flex items-center gap-2.5">
+            <HelpCircle className="w-5 h-5 text-[#428bca]" />
+            <h4 className="text-sm font-black uppercase text-zinc-800 dark:text-zinc-150 tracking-wider">
+              SMS Wholesale Operational Intelligence • System Guidelines
+            </h4>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed font-sans">
+            <div className="space-y-1 bg-white/40 dark:bg-black/10 p-3 rounded-lg">
+              <p className="font-extrabold text-zinc-800 dark:text-zinc-200">📊 SMS Wholesale Business Feasibility Fact:</p>
+              <p>
+                In high-volume SMS transit, carrier operators buy and sell routing bandwidth in millions. Profit margins are incredibly thin, measured in fractions of a cent (down to <span className="font-mono font-bold text-[#428bca]">$0.0001</span> per SMS). A price fluctuation of even $0.0002 has severe cumulative impacts on profitability. Keep buy rates low and proactively markup client selling tiers to protect yield.
+              </p>
+            </div>
+            <div className="space-y-1 bg-white/40 dark:bg-black/10 p-3 rounded-lg">
+              <p className="font-extrabold text-[#428bca]">💡 Route Margins & LCR Description (System Study Guide):</p>
+              <p>
+                Whenever upstream suppliers increase their wholesale rates, client margins are <span className="text-rose-500 font-bold">Squeezed</span>. Use this tool to execute one-click **LCR Optimize** to divert traffic to lower-cost carriers, or **Adjust Price** to raise customer rates and secure profitability.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* TOP LEVEL KPIS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-gradient-to-br from-blue-50 to-white dark:from-zinc-900 dark:to-zinc-805/30 p-4 rounded-xl border border-blue-105 dark:border-zinc-800 shadow-sm flex items-center justify-between">
+          <div className="bg-gradient-to-br from-blue-50/50 to-white dark:from-zinc-900 dark:to-zinc-805/30 p-4 rounded-xl border border-blue-100 dark:border-zinc-850 shadow-sm flex items-center justify-between">
             <div className="space-y-1">
               <span className="text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest block">Monitored Routes</span>
-              <p className="text-2xl font-extrabold font-mono text-zinc-900 dark:text-zinc-50 border-r-0">1,420</p>
-              <span className="text-[10px] text-zinc-400 font-bold block">Active Prefix Mapping</span>
+              <p className="text-2xl font-extrabold font-mono text-zinc-900 dark:text-zinc-50">{analyticsRates.length}</p>
+              <span className="text-[10px] text-zinc-400 font-bold block">Active MCC-MNC Bundles</span>
             </div>
             <div className="p-3 bg-blue-100/65 dark:bg-blue-950/20 text-[#428bca] rounded-lg">
               <Globe className="w-6 h-6" />
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-emerald-50 to-white dark:from-zinc-900 dark:to-zinc-805/30 p-4 rounded-xl border border-emerald-105 dark:border-zinc-800 shadow-sm flex items-center justify-between">
+          <div className="bg-gradient-to-br from-emerald-50/50 to-white dark:from-zinc-900 dark:to-zinc-805/30 p-4 rounded-xl border border-emerald-100 dark:border-zinc-850 shadow-sm flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-450 uppercase tracking-widest block">Wholesale Margin (AVG)</span>
-              <p className="text-2xl font-extrabold font-mono text-emerald-600 dark:text-emerald-450">18.25%</p>
+              <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-450 uppercase tracking-widest block">Average Yield</span>
+              <p className="text-2xl font-extrabold font-mono text-emerald-600 dark:text-emerald-450">
+                {(analyticsRates.reduce((acc, current) => acc + current.pct, 0) / analyticsRates.length).toFixed(2)}%
+              </p>
               <span className="text-[10px] text-zinc-400 font-bold flex items-center gap-1">
                 <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
-                Target Exceeded
+                Protected Wholesale Cap
               </span>
             </div>
             <div className="p-3 bg-emerald-100/65 dark:bg-emerald-950/20 text-emerald-600 rounded-lg">
@@ -192,24 +247,24 @@ export function RateLookupView({ theme }: { theme: 'light' | 'dark' }) {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-amber-50 to-white dark:from-zinc-900 dark:to-zinc-850/30 p-4 rounded-xl border border-amber-105 dark:border-zinc-800 shadow-sm flex items-center justify-between">
+          <div className="bg-gradient-to-br from-amber-50/50 to-white dark:from-zinc-900 dark:to-zinc-850/30 p-4 rounded-xl border border-amber-100 dark:border-zinc-850 shadow-sm flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-[9px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest block">Carrier Cost Update</span>
-              <p className="text-2xl font-extrabold font-mono text-zinc-900 dark:text-zinc-50 border-r-0">14 today</p>
-              <span className="text-[10px] text-zinc-400 font-bold block">Frequent Rate Fluctuations</span>
+              <span className="text-[9px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest block">Current Squeezed</span>
+              <p className="text-2xl font-extrabold font-mono text-amber-550 dark:text-amber-400">
+                {analyticsRates.filter(r => r.status === 'Squeezed').length} Routes
+              </p>
+              <span className="text-[10px] text-zinc-400 font-bold block">Action Code: Markup Mandate</span>
             </div>
             <div className="p-3 bg-amber-100/65 dark:bg-amber-950/20 text-amber-500 rounded-lg">
               <Zap className="w-6 h-6" />
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-rose-50 to-white dark:from-zinc-900 dark:to-zinc-805/30 p-4 rounded-xl border border-rose-105 dark:border-zinc-800 shadow-sm flex items-center justify-between">
+          <div className="bg-gradient-to-br from-rose-50/50 to-white dark:from-zinc-900 dark:to-zinc-805/30 p-4 rounded-xl border border-rose-100 dark:border-zinc-850 shadow-sm flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-[9px] font-black text-rose-600 dark:text-rose-455 uppercase tracking-widest block">Loss Risk Alerts</span>
-              <p className="text-2xl font-extrabold font-mono text-rose-600 dark:text-rose-455">
-                {analyticsRates.filter(r => r.status !== 'Healthy').length} Squeezed
-              </p>
-              <span className="text-[10px] text-zinc-400 font-bold block">LCR Intervention Suggested</span>
+              <span className="text-[9px] font-black text-rose-600 dark:text-rose-455 uppercase tracking-widest block">Defensive Guard</span>
+              <p className="text-2xl font-extrabold font-mono text-rose-600 dark:text-rose-455">LCR Active</p>
+              <span className="text-[10px] text-zinc-400 font-bold block">Automatic Profit Protection</span>
             </div>
             <div className="p-3 bg-rose-100/65 dark:bg-rose-950/20 text-rose-500 rounded-lg">
               <ShieldAlert className="w-6 h-6" />
@@ -217,23 +272,155 @@ export function RateLookupView({ theme }: { theme: 'light' | 'dark' }) {
           </div>
         </div>
 
-        {/* PRIMARY BI-PANEL: CHART VS FEED */}
+        {/* DYNAMIC WHOLESALE FEASIBILITY SIMULATOR & CALCULATOR */}
+        <div className="bg-[#f8f9fa] dark:bg-zinc-900/60 p-6 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm text-left">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-4 mb-5">
+            <div>
+              <h4 className="text-sm font-black uppercase text-zinc-800 dark:text-zinc-100 flex items-center gap-2">
+                <Calculator className="w-5 h-5 text-[#428bca]" /> Prefix-Wise Wholesale Profit Feasibility Simulator
+              </h4>
+              <p className="text-[11px] text-zinc-400 font-medium">Pre-simulate profit margins and rates for any multi-million volume order or carrier dispatch</p>
+            </div>
+            <span className="px-2.5 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 font-mono text-[9px] rounded-lg font-black uppercase tracking-wider">
+              Interactive sandbox
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* Input sliders & text controls */}
+            <div className="lg:col-span-7 space-y-5">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5 text-left">
+                  <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider font-mono">Target Dial / Prefix:</label>
+                  <input 
+                    type="text" 
+                    value={simPrefix}
+                    onChange={(e) => setSimPrefix(e.target.value)}
+                    placeholder="e.g. +91" 
+                    className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-bold outline-none ring-1 ring-zinc-100 focus:ring-[#428bca]"
+                  />
+                </div>
+                <div className="space-y-1.5 text-left">
+                  <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider font-mono">Carrier Buy Cost (USD / SMS):</label>
+                  <input 
+                    type="number" 
+                    step="0.0001"
+                    value={simBuyCost}
+                    onChange={(e) => setSimBuyCost(e.target.value)}
+                    placeholder="e.g. 0.0012" 
+                    className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-mono font-bold outline-none ring-1 ring-zinc-100 focus:ring-[#428bca]"
+                  />
+                </div>
+              </div>
+
+              {/* Slider for volume */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-[10px] font-black uppercase text-zinc-450 font-mono">
+                  <span>Anticipated Traffic Volume (SMS/Month):</span>
+                  <span className="text-[#428bca] bg-[#428bca]/10 px-2.5 py-0.5 rounded-full text-xs font-black">
+                    {simVolume.toLocaleString()} SMS
+                  </span>
+                </div>
+                <input 
+                  type="range" 
+                  min="100000" 
+                  max="20000000" 
+                  step="100000"
+                  value={simEstVol}
+                  onChange={(e) => setSimEstVol(e.target.value)}
+                  className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-[#428bca]"
+                />
+                <div className="flex justify-between text-[9px] text-zinc-400 font-bold uppercase">
+                  <span>100K SMS</span>
+                  <span>10 Million</span>
+                  <span>20 Million</span>
+                </div>
+              </div>
+
+              {/* Slider for target wholesale markup percentage */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-[10px] font-black uppercase text-zinc-450 font-mono">
+                  <span>Desired Markup Profit Ratio (%):</span>
+                  <span className="text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full text-xs font-black font-mono">
+                    {simMarkup}% Markup
+                  </span>
+                </div>
+                <input 
+                  type="range" 
+                  min="3" 
+                  max="45" 
+                  step="1"
+                  value={simMarkupPct}
+                  onChange={(e) => setSimMarkupPct(e.target.value)}
+                  className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-[#428bca]"
+                />
+                <div className="flex justify-between text-[9px] text-zinc-400 font-bold uppercase">
+                  <span>3% (Thin Profit)</span>
+                  <span>20% (Medium Yield)</span>
+                  <span>45% (Premium direct/Direct connection)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Simulated Live Output Card */}
+            <div className="lg:col-span-5 bg-white dark:bg-zinc-950 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-md flex flex-col justify-between space-y-4">
+              <div className="pb-3 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
+                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-wider font-mono">SIMULATED ECONOMIC OUTPUTS</span>
+                <span className={cn(
+                  "text-[9px] font-black uppercase px-2 py-0.5 rounded-full",
+                  simMarkup >= 18 ? "bg-emerald-50 text-emerald-600" : simMarkup >= 10 ? "bg-amber-50 text-amber-600" : "bg-rose-50 text-rose-600"
+                )}>
+                  {simMarkup >= 18 ? "Optimal Feasibility" : simMarkup >= 10 ? "Acceptable Yield" : "Low Margin Risk"}
+                </span>
+              </div>
+
+              <div className="space-y-3 font-sans">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-bold text-zinc-500">Rec. Client Rate per SMS:</span>
+                  <span className="font-mono font-black text-zinc-850 dark:text-zinc-200 text-sm">
+                    ${simRecSell.toFixed(5)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="font-bold text-zinc-500">Predicted Monthly Revenue:</span>
+                  <span className="font-mono font-black text-[#428bca] text-lg">
+                    ${simEstTotalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="font-bold text-zinc-500">Predicted Profit Margin:</span>
+                  <span className="font-mono font-black text-emerald-600 text-lg">
+                    +${simEstTotalProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-xl">
+                <p className="text-[10px] text-zinc-400 font-bold leading-normal text-left">
+                  💡 Wholesale Math: Billed {simVolume.toLocaleString()} SMS per month at sell rate <span className="text-zinc-800 dark:text-zinc-200 font-mono font-semibold">${simRecSell.toFixed(5)}</span> per SMS. This provides a clean profit pocket of <span className="text-emerald-600 font-mono font-semibold">${simNetProfitSingleSMS.toFixed(5)}</span> on every SMS.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* PRIMARY BI-PANEL: RE-ANIMATED LIVE GRAPH VS FEED */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* LEFT: GRAPH (GAP ANALYSIS) */}
-          <div className="lg:col-span-2 bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 flex flex-col h-[350px]">
+          {/* LEFT: GRAPH OF SELL PRICE VS BUY COST */}
+          <div className="lg:col-span-2 bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 flex flex-col h-[380px]">
             <div className="flex justify-between items-center mb-4">
               <div className="space-y-0.5">
                 <h4 className="text-[12px] font-black uppercase text-zinc-700 dark:text-zinc-300 tracking-wider">Sell Price vs Buy Cost (GAP Analysis)</h4>
-                <p className="text-[10px] text-zinc-400 font-bold">Comparing base Carrier buy sheet against active Customer selling price per country</p>
+                <p className="text-[10px] text-zinc-400 font-bold">Dynamic comparison representing active carrier parameters. Optimizing a route drops buy cost immediately!</p>
               </div>
-              <span className="px-2 py-0.5 bg-zinc-150 dark:bg-zinc-800 text-zinc-500 font-mono text-[9px] rounded font-bold uppercase">EUR/USD BASE</span>
+              <span className="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 font-mono text-[9px] rounded font-bold uppercase">USD BASE</span>
             </div>
             
             <div className="flex-1 min-h-0">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={chartData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
-                  <CartesianGrid stroke="#f1f5f9" strokeDasharray="3 3" />
+                  <CartesianGrid stroke="#f1f5f9" strokeDasharray="3 3 animate-pulse" />
                   <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 700 }} stroke="#94a3b8" />
                   <YAxis yAxisId="left" tick={{ fontSize: 9, fontWeight: 700 }} stroke="#94a3b8" />
                   <YAxis yAxisId="right" orientation="right" unit="%" tick={{ fontSize: 9, fontWeight: 700 }} stroke="#10b981" />
@@ -247,8 +434,8 @@ export function RateLookupView({ theme }: { theme: 'light' | 'dark' }) {
             </div>
           </div>
 
-          {/* RIGHT: SYSTEM WHolesale EVENTS LOGS */}
-          <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 flex flex-col h-[350px]">
+          {/* RIGHT: LIVE EVENT FEED & ADJUSTMENT ENGINE */}
+          <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 flex flex-col h-[380px]">
              <div className="flex justify-between items-center mb-4 pb-2 border-b border-zinc-100 dark:border-zinc-800">
                 <h4 className="text-[11px] font-black uppercase text-zinc-700 dark:text-zinc-300 tracking-widest flex items-center gap-1.5 flex-1">
                    <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" /> Carrier Price Event Stream
@@ -267,7 +454,7 @@ export function RateLookupView({ theme }: { theme: 'light' | 'dark' }) {
                      <div key={n.id} className="p-3 bg-zinc-50 dark:bg-zinc-800/40 rounded-lg border border-zinc-150 dark:border-zinc-800 space-y-2 relative group hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
                         <button 
                            onClick={() => handleDismissNotification(n.id)}
-                           className="absolute right-2 top-2 text-zinc-400 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100 outline-none"
+                           className="absolute right-2 top-2 text-zinc-400 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100 outline-none cursor-pointer"
                         >
                            <X className="w-3.5 h-3.5" />
                         </button>
@@ -289,13 +476,13 @@ export function RateLookupView({ theme }: { theme: 'light' | 'dark' }) {
                            <div className="flex gap-2 pt-1 border-t border-zinc-200/50 dark:border-zinc-700/50">
                               <button 
                                  onClick={() => handleOptimizeGateway(n.routeId)}
-                                 className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[9px] font-bold uppercase rounded flex items-center justify-center gap-1 transition-all"
+                                 className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[9px] font-black uppercase rounded flex items-center justify-center gap-1 transition-all cursor-pointer"
                               >
-                                 <Sparkles className="w-3 h-3" /> Optimize Route
+                                 <Sparkles className="w-3 h-3" /> Optimize
                               </button>
                               <button 
                                  onClick={() => handleAdjustSellPrice(n.routeId)}
-                                 className="flex-1 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white text-[9px] font-bold uppercase rounded flex items-center justify-center gap-1 transition-all"
+                                 className="flex-1 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white text-[9px] font-black uppercase rounded flex items-center justify-center gap-1 transition-all cursor-pointer"
                               >
                                  Adjust Price
                               </button>
@@ -308,37 +495,90 @@ export function RateLookupView({ theme }: { theme: 'light' | 'dark' }) {
           </div>
         </div>
 
-        {/* PRIMARY DESTINATION ANALYTICS TABLE MATRIX */}
+        {/* ACTIVE WHOLESALE ROUTE ANALYTICS MATRIX with Advanced Interactive Filters */}
         <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden text-left">
-           <div className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800 flex flex-wrap justify-between items-center gap-4">
-              <div className="space-y-0.5">
-                 <h4 className="text-[11px] font-black uppercase text-zinc-700 dark:text-zinc-200 tracking-widest flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4 text-[#428bca]" /> Active Wholesale Route Analytics Matrix
-                 </h4>
-                 <p className="text-[10px] text-zinc-400 font-bold">Lease cost comparison, selling yield optimization, and destination prefix profitability status</p>
+           <div className="px-6 py-5 border-b border-zinc-100 dark:border-zinc-800 space-y-4">
+              <div className="flex flex-wrap justify-between items-center gap-4">
+                 <div className="space-y-0.5">
+                    <h4 className="text-[12px] font-black uppercase text-zinc-700 dark:text-zinc-200 tracking-widest flex items-center gap-2">
+                       <BarChart3 className="w-4 h-4 text-[#428bca]" /> Active Wholesale Route Analytics Matrix
+                    </h4>
+                    <p className="text-[10px] text-zinc-400 font-bold">Lease cost comparison, selling yield optimization, and destination prefix profitability status</p>
+                 </div>
+                 
+                 <div className="flex items-center gap-2">
+                    <span className="text-[9.5px] font-bold text-zinc-400 uppercase">Interactive simulation matrix :</span>
+                    <button 
+                       onClick={() => {
+                         setAnalyticsRates([
+                           { id: '1', country: 'United Arab Emirates', code: '+971', mccmnc: '42402', customer: 'Aakash_DIR_IN', sell: 0.0090, vendor: 'V_RESERVE', buy: 0.0085, margin: 0.0005, pct: 5.5, status: 'Squeezed', dlr: '97.2%' },
+                           { id: '2', country: 'India', code: '+91', mccmnc: '40445', customer: 'ABC_Trunk', sell: 0.0015, vendor: 'V_ABC', buy: 0.0011, margin: 0.0004, pct: 26.6, status: 'Healthy', dlr: '92.4%' },
+                           { id: '3', country: 'Greece', code: '+30', mccmnc: '20201', customer: 'Aakash_DIR_IN', sell: 0.0050, vendor: 'Asia_Provider', buy: 0.0040, margin: 0.0010, pct: 20.0, status: 'Healthy', dlr: '98.5%' },
+                           { id: '4', country: 'Vietnam', code: '+84', mccmnc: '45201', customer: 'Global_Trunk', sell: 0.0042, vendor: 'V_XYZ', buy: 0.0035, margin: 0.0007, pct: 16.6, status: 'Attention', dlr: '89.1%' },
+                           { id: '5', country: 'Germany', code: '+49', mccmnc: '26201', customer: 'Notify_HQ_IN', sell: 0.0072, vendor: 'V_XYZ', buy: 0.0055, margin: 0.0017, pct: 23.6, status: 'Healthy', dlr: '96.8%' }
+                         ]);
+                         setNotifications([
+                           { id: 'n1', type: 'increase', text: 'Supplier V_RESERVE increased buy rate for prefix +971 (UAE Vodafone)', impact: 'Margin squeezed to 5.5%', date: '10 mins ago', routeId: '1' },
+                           { id: 'n2', type: 'decrease', text: 'Supplier Asia_Provider decreased buy rate for prefix +30 (Greece Cosmote)', impact: 'Margin boosted to 20%', date: '1 hour ago', routeId: '3' },
+                           { id: 'n3', type: 'alert', text: 'Critical Margin Alert for prefix +91 (Airtel India): below target 10%', impact: 'Action: Route to low-cost V_XYZ recommended', date: '2 hours ago', routeId: '2' }
+                         ]);
+                       }}
+                       className="px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-[10px] font-black rounded-lg uppercase tracking-wider transition-all cursor-pointer"
+                    >
+                       Reset Simulation Data
+                    </button>
+                 </div>
               </div>
-              
-              <div className="flex items-center gap-2">
-                 <span className="text-[9.5px] font-bold text-zinc-400 uppercase">Interactive simulation matrix :</span>
-                 <button 
-                    onClick={() => {
-                      setAnalyticsRates([
-                        { id: '1', country: 'United Arab Emirates', code: '+971', mccmnc: '42402', customer: 'Aakash_DIR_IN', sell: 0.0090, vendor: 'V_RESERVE', buy: 0.0085, margin: 0.0005, pct: 5.5, status: 'Squeezed', dlr: '97.2%' },
-                        { id: '2', country: 'India', code: '+91', mccmnc: '40445', customer: 'ABC_Trunk', sell: 0.0015, vendor: 'V_ABC', buy: 0.0011, margin: 0.0004, pct: 26.6, status: 'Healthy', dlr: '92.4%' },
-                        { id: '3', country: 'Greece', code: '+30', mccmnc: '20201', customer: 'Aakash_DIR_IN', sell: 0.0050, vendor: 'Asia_Provider', buy: 0.0040, margin: 0.0010, pct: 20.0, status: 'Healthy', dlr: '98.5%' },
-                        { id: '4', country: 'Vietnam', code: '+84', mccmnc: '45201', customer: 'Global_Trunk', sell: 0.0042, vendor: 'V_XYZ', buy: 0.0035, margin: 0.0007, pct: 16.6, status: 'Attention', dlr: '89.1%' },
-                        { id: '5', country: 'Germany', code: '+49', mccmnc: '26201', customer: 'Notify_HQ_IN', sell: 0.0072, vendor: 'V_XYZ', buy: 0.0055, margin: 0.0017, pct: 23.6, status: 'Healthy', dlr: '96.8%' }
-                      ]);
-                      setNotifications([
-                        { id: 'n1', type: 'increase', text: 'Supplier V_RESERVE increased buy rate for prefix +971 (UAE Vodafone)', impact: 'Margin squeezed to 5.5%', date: '10 mins ago', routeId: '1' },
-                        { id: 'n2', type: 'decrease', text: 'Supplier Asia_Provider decreased buy rate for prefix +30 (Greece Cosmote)', impact: 'Margin boosted to 20%', date: '1 hour ago', routeId: '3' },
-                        { id: 'n3', type: 'alert', text: 'Critical Margin Alert for prefix +91 (Airtel India): below target 10%', impact: 'Action: Route to low-cost V_XYZ recommended', date: '2 hours ago', routeId: '2' }
-                      ]);
-                    }}
-                    className="px-3 py-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-650 text-[10px] font-bold rounded uppercase tracking-wider transition-all"
-                 >
-                    Reset Simulation Data
-                 </button>
+
+              {/* SEARCH FILTERS CONTROLS */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-zinc-50 dark:bg-zinc-950/40 rounded-xl border border-zinc-150 dark:border-zinc-805/60 mt-2">
+                 <div className="space-y-1.5">
+                    <span className="text-[9px] font-black uppercase text-zinc-400 block tracking-widest font-mono">Filter Country:</span>
+                    <div className="relative">
+                       <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-zinc-400" />
+                       <input 
+                         type="text" 
+                         value={countryFilter}
+                         onChange={(e) => setCountryFilter(e.target.value)}
+                         placeholder="Search countries..." 
+                         className="w-full pl-9 pr-3 py-1.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs outline-none"
+                       />
+                    </div>
+                 </div>
+                 
+                 <div className="space-y-1.5">
+                    <span className="text-[9px] font-black uppercase text-zinc-400 block tracking-widest font-mono">Filter Prefix / MCCMNC:</span>
+                    <div className="relative">
+                       <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-zinc-400" />
+                       <input 
+                         type="text" 
+                         value={prefixFilter}
+                         onChange={(e) => setPrefixFilter(e.target.value)}
+                         placeholder="Prefix (e.g. +30) / Code..." 
+                         className="w-full pl-9 pr-3 py-1.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs outline-none"
+                       />
+                    </div>
+                 </div>
+
+                 <div className="space-y-1.5">
+                    <span className="text-[9px] font-black uppercase text-zinc-400 block tracking-widest font-mono">Filter Margin Status:</span>
+                    <div className="flex bg-white dark:bg-zinc-800 p-1 border border-zinc-200 dark:border-zinc-700 rounded-xl">
+                       {['All', 'Healthy', 'Attention', 'Squeezed'].map(status => (
+                          <button
+                            key={status}
+                            onClick={() => setStatusFilter(status)}
+                            className={cn(
+                              "flex-1 py-1 text-[9.5px] font-black uppercase rounded-lg transition-all whitespace-nowrap cursor-pointer",
+                              statusFilter === status 
+                                ? "bg-[#428bca] text-white shadow-sm" 
+                                : "text-zinc-500 hover:text-zinc-800"
+                            )}
+                          >
+                             {status}
+                          </button>
+                       ))}
+                    </div>
+                 </div>
               </div>
            </div>
 
@@ -359,64 +599,74 @@ export function RateLookupView({ theme }: { theme: 'light' | 'dark' }) {
                     </tr>
                  </thead>
                  <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                    {analyticsRates.map(row => (
-                       <tr key={row.id} className="group hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-all">
-                          <td className="px-6 py-4">
-                             <span className="text-[11px] font-black text-[#428bca] uppercase block">{row.country}</span>
-                             <span className="text-[9px] text-zinc-400 font-mono font-bold uppercase">{row.code} Prefix Code</span>
-                          </td>
-                          <td className="px-6 py-4 text-[10.5px] font-mono text-zinc-500 font-bold">{row.mccmnc}</td>
-                          <td className="px-6 py-4 text-[11px] font-bold text-zinc-600 dark:text-zinc-400">{row.customer}</td>
-                          <td className="px-6 py-4">
-                             <span className="text-[11px] font-mono text-zinc-500 font-bold">${row.buy.toFixed(4)}</span>
-                             <span className="text-[8px] text-zinc-400 font-sans block uppercase font-black tracking-widest mt-0.5">{row.vendor}</span>
-                          </td>
-                          <td className="px-6 py-4 font-mono font-black text-[11px] text-zinc-800 dark:text-zinc-200">${row.sell.toFixed(4)}</td>
-                          <td className="px-6 py-4 font-mono font-extrabold text-[11px] text-emerald-600">${row.margin.toFixed(4)}</td>
-                          <td className="px-6 py-4">
-                             <span className={cn(
-                               "px-2 py-0.5 rounded font-mono font-black text-[10.5px]",
-                               row.pct > 18 ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20" : row.pct > 10 ? "text-amber-600 bg-amber-50 dark:bg-amber-950/20" : "text-rose-600 bg-rose-50 dark:bg-rose-950/20"
-                             )}>
-                               {row.pct}%
-                             </span>
-                          </td>
-                          <td className="px-6 py-4">
-                             <span className="text-[11px] font-black font-mono text-teal-600">{row.dlr}</span>
-                             <span className="text-[8.5px] text-zinc-400 block uppercase font-bold">Delivery Rate</span>
-                          </td>
-                          <td className="px-6 py-4">
-                             <span className={cn(
-                               "px-2 py-0.5 text-[8.5px] font-black rounded uppercase tracking-wider inline-block",
-                               row.status === 'Healthy' ? "bg-emerald-50 text-emerald-650 border border-emerald-100" : row.status === 'Attention' ? "bg-amber-50 text-amber-650 border border-amber-100" : "bg-rose-50 text-rose-650 border border-rose-100"
-                             )}>
-                               {row.status}
-                             </span>
-                          </td>
-                          <td className="px-6 py-4 text-center whitespace-nowrap">
-                             {row.status !== 'Healthy' ? (
-                                <div className="inline-flex gap-1.5 justify-center">
-                                   <button 
-                                      onClick={() => handleOptimizeGateway(row.id)}
-                                      title="Switch customer destination route to lowest cost provider (LCR optimization)"
-                                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[9px] font-black uppercase rounded shadow-md hover:-translate-y-0.5 transition-all outline-none"
-                                   >
-                                      LCR Optimize
-                                   </button>
-                                   <button 
-                                      onClick={() => handleAdjustSellPrice(row.id)}
-                                      title="Increase customer selling price to safeguard profit margins"
-                                      className="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-white text-[9px] font-black uppercase rounded shadow-md hover:-translate-y-0.5 transition-all outline-none"
-                                   >
-                                      Mark Up
-                                   </button>
-                                </div>
-                             ) : (
-                                <span className="text-[10px] text-zinc-400 font-bold italic">Route Optimized ✓</span>
-                             )}
+                    {filteredRates.length === 0 ? (
+                       <tr>
+                          <td colSpan={10} className="px-6 py-12 text-center text-xs font-black text-zinc-400 uppercase tracking-wider bg-zinc-50/50">
+                             No matching rates found. Try resetting custom matrix filters!
                           </td>
                        </tr>
-                    ))}
+                    ) : (
+                       filteredRates.map(row => (
+                          <tr key={row.id} className="group hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-all">
+                             <td className="px-6 py-4">
+                                <span className="text-[11px] font-black text-[#428bca] uppercase block">{row.country}</span>
+                                <span className="text-[9px] text-zinc-400 font-mono font-bold uppercase">{row.code} Prefix Code</span>
+                             </td>
+                             <td className="px-6 py-4 text-[10.5px] font-mono text-zinc-500 font-bold">{row.mccmnc}</td>
+                             <td className="px-6 py-4 text-[11px] font-bold text-zinc-650 dark:text-zinc-350">{row.customer}</td>
+                             <td className="px-6 py-4">
+                                <span className="text-[11px] font-mono text-zinc-500 font-bold">${row.buy.toFixed(4)}</span>
+                                <span className="text-[8px] text-zinc-400 font-sans block uppercase font-black tracking-widest mt-0.5">{row.vendor}</span>
+                             </td>
+                             <td className="px-6 py-4 font-mono font-black text-[11px] text-zinc-850 dark:text-zinc-150">${row.sell.toFixed(4)}</td>
+                             <td className="px-6 py-4 font-mono font-extrabold text-[11px] text-emerald-600">${row.margin.toFixed(4)}</td>
+                             <td className="px-6 py-4">
+                                <span className={cn(
+                                  "px-2.1 py-0.5 rounded font-mono font-black text-[10.5px]",
+                                  row.pct > 18 ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20" : row.pct > 10 ? "text-amber-650 bg-amber-50 dark:bg-amber-950/20" : "text-rose-600 bg-rose-50 dark:bg-rose-950/20"
+                                )}>
+                                  {row.pct}%
+                                </span>
+                             </td>
+                             <td className="px-6 py-4">
+                                <span className="text-[11px] font-black font-mono text-teal-600">{row.dlr}</span>
+                                <span className="text-[8.5px] text-zinc-400 block uppercase font-bold">Delivery Rate</span>
+                             </td>
+                             <td className="px-6 py-4">
+                                <span className={cn(
+                                  "px-2 py-0.5 text-[8.5px] font-black rounded uppercase tracking-wider inline-block",
+                                  row.status === 'Healthy' ? "bg-emerald-50 text-emerald-650 border border-emerald-100" : row.status === 'Attention' ? "bg-amber-50 text-amber-650 border border-amber-100" : "bg-rose-50 text-rose-600 border border-rose-105"
+                                )}>
+                                  {row.status}
+                                </span>
+                             </td>
+                             <td className="px-6 py-4 text-center whitespace-nowrap">
+                                {row.status !== 'Healthy' ? (
+                                   <div className="inline-flex gap-1.5 justify-center">
+                                      <button 
+                                         onClick={() => handleOptimizeGateway(row.id)}
+                                         title="Switch customer destination route to lowest cost provider (LCR optimization)"
+                                         className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[9px] font-black uppercase rounded-lg shadow-md hover:-translate-y-0.5 transition-all outline-none cursor-pointer"
+                                      >
+                                         LCR Optimize
+                                      </button>
+                                      <button 
+                                         onClick={() => handleAdjustSellPrice(row.id)}
+                                         title="Increase customer selling price to safeguard profit margins"
+                                         className="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-white text-[9px] font-black uppercase rounded-lg shadow-md hover:-translate-y-0.5 transition-all outline-none cursor-pointer"
+                                      >
+                                         Mark Up
+                                      </button>
+                                   </div>
+                                ) : (
+                                   <div className="flex items-center justify-center gap-1.5 text-emerald-600 text-[10.5px] font-extrabold italic">
+                                      <Check className="w-3.5 h-3.5" /> Route Optimized
+                                   </div>
+                                )}
+                             </td>
+                          </tr>
+                       ))
+                    )}
                  </tbody>
               </table>
            </div>

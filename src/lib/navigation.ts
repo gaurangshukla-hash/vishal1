@@ -48,7 +48,7 @@ export const NAVIGATION: NavItem[] = [
     id: 'Product',
     label: 'Product',
     items: [
-      { id: 'product-category', label: 'Product Category' },
+      { id: 'product-category', label: 'Category' },
       { id: 'sms-wholesale-business', label: 'SMS Product' },
     ],
   },
@@ -70,6 +70,7 @@ export const NAVIGATION: NavItem[] = [
       { id: 'notification', label: 'Notification' },
       { id: 'email-logs', label: 'Email Logs' },
       { id: 'firewall', label: 'Firewall' },
+      { id: 'ai-error-tracking', label: 'AI Error Code Tracking' },
       { id: 'mccmnc-unique-codes', label: 'MCCMNC Unique Codes' },
     ],
   },
@@ -94,6 +95,7 @@ export const NAVIGATION: NavItem[] = [
       { id: 'customer-portal', label: 'Customer Portal' },
       { id: 'report-template', label: 'Report Template' },
       { id: 'task-manager', label: 'Task Manager' },
+      { id: 'fast-query-hub', label: 'Fast Query Hub' },
     ],
   },
 ];

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Plus, Download, ChevronLeft, ChevronRight, Edit2, Eye, History, RotateCcw, Upload, Copy, List, Trash2, ArrowUp, ArrowDown, ArrowUpDown, Zap, Mail, CheckCircle2 } from 'lucide-react';
+import { Search, Plus, Download, ChevronLeft, ChevronRight, Edit2, Eye, History, RotateCcw, Upload, Copy, List, Trash2, ArrowUp, ArrowDown, ArrowUpDown, Zap, Mail, CheckCircle2, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { MOCK_DATA } from '../lib/mockData';
 
@@ -90,35 +90,115 @@ export function DataTableView({ title, originalTitle, columns, theme, onAdd }: D
       'Auto Upload Failed Report',
       'Auto Upload Report'
     ];
+
     if (action === 'Add' && onAdd && adminForms.includes(effectiveTitle)) {
       onAdd();
       return;
     }
+
+    if (action === 'Delete') {
+      if (selectedRows.length === 0) {
+        alert("Please select at least one row to delete.");
+        return;
+      }
+      if (window.confirm(`Are you sure you want to delete ${selectedRows.length} selected item(s)?`)) {
+        const filtered = dataList.filter((_, idx) => !selectedRows.includes(idx));
+        saveDataList(filtered);
+        setSelectedRows([]);
+        alert("Selected records deleted successfully!");
+      }
+      return;
+    }
+
+    if (action === 'Clone' || action === 'Copy') {
+      if (selectedRows.length !== 1) {
+        alert("Please select exactly one row to clone.");
+        return;
+      }
+      const target = dataList[selectedRows[0]];
+      const cloned = { ...target };
+      const idKey = effectiveColumns.find(c => c.toLowerCase().includes('id'));
+      if (idKey) {
+        cloned[idKey] = `${target[idKey]}_copy_${Math.floor(Math.random() * 1000)}`;
+      }
+      const textKey = effectiveColumns.find(c => c.toLowerCase().includes('name') || c.toLowerCase().includes('tmpl') || c.toLowerCase().includes('rule') || c.toLowerCase().includes('username'));
+      if (textKey) {
+        cloned[textKey] = `${target[textKey]} (Copy)`;
+      }
+      saveDataList([cloned, ...dataList]);
+      alert("Record cloned successfully!");
+      return;
+    }
+
     if (action === 'Clear' || action === 'Refresh') {
       setSelectedRows([]);
       if (action === 'Refresh') {
-         // Simulated refresh
          const btn = document.activeElement as HTMLElement;
          if (btn) {
            btn.classList.add('animate-spin');
            setTimeout(() => btn.classList.remove('animate-spin'), 1000);
          }
+         alert("Data refreshed and synchronized successfully!");
       }
       return;
     }
+
+    // Capture initial values if editing
+    if (action === 'Edit') {
+      if (selectedRows.length !== 1) {
+        alert("Please select exactly one row to edit.");
+        return;
+      }
+      setFormInputs(dataList[selectedRows[0]] || {});
+    } else {
+      setFormInputs({});
+    }
+
     setModalTitle(`${action} ${effectiveTitle}`);
     setShowModal(true);
   };
 
-  // Use mock data or generate fallback
-  const rawData = MOCK_DATA[effectiveTitle === 'Payment' ? 'Transaction' : effectiveTitle === 'Invoices & Customer Invoice' ? 'Invoice' : effectiveTitle] || [];
-  const data = rawData.length > 0 ? [...rawData] : Array.from({ length: 15 }).map((_, i) => {
-    const row: any = { id: 100 + i };
-    effectiveColumns.forEach(col => {
-      row[col] = `${col} Data ${i + 1}`;
+  // Use state-backed persistent storage for tables to make them interactive
+  const [dataList, setDataList] = React.useState<any[]>(() => {
+    const customKey = `teleoss-table-${effectiveTitle}`;
+    const saved = localStorage.getItem(customKey);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    const rawData = MOCK_DATA[effectiveTitle === 'Payment' ? 'Transaction' : effectiveTitle === 'Invoices & Customer Invoice' ? 'Invoice' : effectiveTitle] || [];
+    if (rawData.length > 0) {
+      return [...rawData];
+    }
+    return Array.from({ length: 8 }).map((_, i) => {
+      const row: any = { id: 100 + i };
+      effectiveColumns.forEach(col => {
+        if (col === 'ID' || col === 'Id' || col === 'Info ID' || col === 'RATE TABLE ID' || col === 'INFO ID' || col === 'RE-RATING ID') {
+          row[col] = String(100 + i);
+        } else if (col === 'Status' || col === 'STATUS') {
+          row[col] = i % 3 === 0 ? 'Inactive' : 'Active';
+        } else if (col === 'Updated By' || col === 'UPDATED BY') {
+          row[col] = 'Admin User';
+        } else {
+          row[col] = `${col} Data ${i + 1}`;
+        }
+      });
+      return row;
     });
-    return row;
   });
+
+  const [formInputs, setFormInputs] = React.useState<Record<string, string>>({});
+
+  const saveDataList = (newList: any[]) => {
+    setDataList(newList);
+    const customKey = `teleoss-table-${effectiveTitle}`;
+    localStorage.setItem(customKey, JSON.stringify(newList));
+  };
+
+  const data = [...dataList];
 
   if (sortConfig !== null) {
     data.sort((a, b) => {
@@ -1243,24 +1323,60 @@ export function DataTableView({ title, originalTitle, columns, theme, onAdd }: D
                 <div className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/50 flex items-center justify-between">
                   <h3 className="text-sm font-black uppercase tracking-widest text-[#428bca]">{modalTitle}</h3>
                   <button onClick={() => setShowModal(false)} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors">
-                    <RotateCcw className="w-5 h-5" />
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
-                <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
                   {effectiveColumns.filter(c => c !== 'FILE' && c !== 'ACTION' && !c.includes('TIME')).map(col => (
                     <div key={col} className="flex flex-col gap-2">
                       <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider font-mono">{col}</label>
                       <input 
                         type="text" 
+                        value={formInputs[col] || ''}
+                        onChange={(e) => setFormInputs(prev => ({ ...prev, [col]: e.target.value }))}
                         placeholder={`Enter ${col.toLowerCase()}`}
-                        className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-zinc-850 dark:text-zinc-100"
                       />
                     </div>
                   ))}
                 </div>
                 <div className="px-6 py-4 bg-zinc-50/50 dark:bg-zinc-800/50 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-3">
-                  <button onClick={() => setShowModal(false)} className="px-6 py-2 text-[11px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-700 transition-colors">Cancel</button>
-                  <button onClick={() => setShowModal(false)} className="px-8 py-2 bg-[#428bca] text-white text-[11px] font-black uppercase tracking-widest rounded-lg shadow-md hover:bg-blue-600 transition-all active:scale-95">Submit</button>
+                  <button onClick={() => setShowModal(false)} className="px-6 py-2 text-[11px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-700 transition-colors font-sans">Cancel</button>
+                  <button 
+                    onClick={() => {
+                      if (modalTitle.includes('Edit')) {
+                        const idx = selectedRows[0];
+                        if (idx !== undefined) {
+                          const updatedRow = { ...dataList[idx], ...formInputs };
+                          const updatedList = dataList.map((row, rIdx) => rIdx === idx ? updatedRow : row);
+                          saveDataList(updatedList);
+                          alert("Record updated successfully!");
+                        }
+                      } else {
+                        const newRow = { ...formInputs };
+                        effectiveColumns.forEach(col => {
+                          if (!newRow[col]) {
+                            if (col === 'ID' || col === 'Id' || col === 'Info ID' || col === 'INFO ID' || col === 'RATE TABLE ID' || col === 'RE-RATING ID') {
+                              newRow[col] = String(100 + dataList.length + Math.floor(Math.random() * 1000));
+                            } else if (col === 'Status' || col === 'STATUS') {
+                              newRow[col] = 'Active';
+                            } else if (col === 'Updated By' || col === 'UPDATED BY') {
+                              newRow[col] = 'Admin User';
+                            } else {
+                              newRow[col] = `--`;
+                            }
+                          }
+                        });
+                        saveDataList([newRow, ...dataList]);
+                        alert("Record added successfully!");
+                      }
+                      setShowModal(false);
+                      setSelectedRows([]);
+                    }} 
+                    className="px-8 py-2 bg-[#428bca] text-white text-[11px] font-black uppercase tracking-widest rounded-lg shadow-md hover:bg-blue-600 transition-all active:scale-95 font-sans"
+                  >
+                    Submit
+                  </button>
                 </div>
               </div>
             )}

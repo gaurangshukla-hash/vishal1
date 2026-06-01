@@ -13,7 +13,9 @@ import { SMSProductMateForm } from './SMSProductMateForm';
 import { ReportDashboard } from './ReportDashboard';
 import { FirewallForm } from './FirewallForm';
 import { RecipientGroupsView } from './RecipientGroupsView';
+import { AIErrorTrackingView } from './AIErrorTrackingView';
 import { NAVIGATION } from '../lib/navigation';
+import { FastQueryHubView } from './FastQueryHubView';
 
 interface SectionViewProps {
   menu: string;
@@ -31,6 +33,10 @@ export function SectionView({ menu, theme }: SectionViewProps) {
 
   if (menu === 'Recipient Groups') {
     return <RecipientGroupsView theme={theme} />;
+  }
+
+  if (menu === 'Fast Query Hub') {
+    return <FastQueryHubView theme={theme} />;
   }
 
   // Find parent menu for breadcrumbs
@@ -170,10 +176,10 @@ export function SectionView({ menu, theme }: SectionViewProps) {
     );
   }
 
-  if (menu === 'Product Category' || menu === 'product-category') {
+  if (menu === 'Category' || menu === 'Product Category' || menu === 'product-category') {
     return (
       <DataTableView 
-        title="Product Category" 
+        title="Category" 
         originalTitle="Product Category"
         columns={tableConfig['Product Category']} 
         theme={theme} 
@@ -190,8 +196,12 @@ export function SectionView({ menu, theme }: SectionViewProps) {
     return <AdminFormView title={breadcrumbs} theme={theme} onClose={() => setIsAdding(false)} />;
   }
 
-  if (menu === 'Firewall' && isAdding) {
+  if (menu === 'Firewall') {
     return <FirewallForm theme={theme} onClose={() => setIsAdding(false)} />;
+  }
+
+  if (menu === 'AI Error Code Tracking' || menu === 'ai-error-tracking') {
+    return <AIErrorTrackingView theme={theme} />;
   }
 
   return (

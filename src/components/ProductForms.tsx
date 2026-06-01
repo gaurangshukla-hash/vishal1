@@ -322,9 +322,9 @@ export function RateTableRatesView({ onClose, rateTableName }: { onClose: () => 
                 className="w-full px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded text-xs outline-none focus:border-blue-500 font-mono"
               />
             </div>
-            <button
-              type="submit"
-              className="py-1.5 bg-[#428bca] hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded shadow transition-all duration-300 flex items-center justify-center gap-1 hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5 active:translate-y-0"
+            <button 
+              type="submit" 
+              className="py-1.5 bg-[#428bca] hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded shadow transition-all flex items-center justify-center gap-1"
             >
               <CheckCircle2 className="w-3.5 h-3.5" /> Append Rate
             </button>
@@ -504,7 +504,7 @@ export function LCRRequestForm({ onClose, theme }: FormProps) {
             </div>
 
             <div className="flex items-start gap-4">
-              <label className="text-[11px] font-black uppercase text-zinc-400 tracking-wider font-mono min-w-[120px] text-right pt-2">Product Category <span className="text-red-500">*</span> :</label>
+              <label className="text-[11px] font-black uppercase text-zinc-400 tracking-wider font-mono min-w-[120px] text-right pt-2">Category <span className="text-red-500">*</span> :</label>
               <div className="flex-1 border border-zinc-200 dark:border-zinc-800 rounded overflow-hidden">
                 <div className="max-h-32 overflow-auto p-2 space-y-1 bg-white dark:bg-zinc-900">
                   {['DIRECT', 'HQ', 'SIM', 'WHS', 'International', 'Local Premium'].map(item => (
@@ -1119,83 +1119,194 @@ export function AddReRatingForm({ onClose, theme }: FormProps) {
 }
 
 export function ViewReRating({ onClose, data }: { onClose: () => void; data: any }) {
+  // Setup friendly states for testing action buttons
+  const handleApprove = () => {
+    alert(`✔ Re-rating request #${data?.['RE-RATING ID'] || '24'} has been APPROVED.\n\nThe calculated rate credit adjustments have been officially posted to the enterprise billing ledger. Discrepancy letters have been dispatched.`);
+    onClose();
+  };
+
+  const handleReject = () => {
+    alert(`❌ Re-rating request #${data?.['RE-RATING ID'] || '24'} has been REJECTED.\n\nNo adjustments will be posted. The request will mark as Rejected.`);
+    onClose();
+  };
+
+  // Mock-simulated metrics if data is sparse, to show first-time users how it works
+  const totalVolume = 1850000;
+  const originalCost = totalVolume * 0.0055;
+  const correctedCost = totalVolume * 0.0042;
+  const diffCost = originalCost - correctedCost;
+
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 max-w-7xl w-full max-h-[95vh] flex flex-col font-sans">
-      <div className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/50 flex items-center justify-between">
-        <h3 className="text-sm font-black uppercase tracking-widest text-[#428bca]">RE-RATING INFORMATION</h3>
-        <div className="flex items-center gap-3">
-          <button className="px-6 py-1.5 bg-[#428bca] text-white text-[10px] font-black uppercase tracking-widest rounded shadow hover:bg-blue-600 transition-all">Approve</button>
-          <button className="px-6 py-1.5 bg-[#d9534f] text-white text-[10px] font-black uppercase tracking-widest rounded shadow hover:bg-red-600 transition-all">Reject</button>
-          <button onClick={onClose} className="px-6 py-1.5 bg-[#428bca] text-white text-[10px] font-black uppercase tracking-widest rounded shadow hover:bg-blue-600 transition-all">Back</button>
+    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-w-5xl w-full max-h-[92vh] flex flex-col font-sans text-left">
+      {/* Header section with high visual contrast */}
+      <div className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3 text-left">
+          <div className="p-2 bg-blue-50 dark:bg-zinc-800 rounded-xl text-[#428bca]">
+            <Activity className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-black uppercase tracking-wider text-zinc-800 dark:text-zinc-100">Historical Re-Rating Bill Audit</h3>
+            <p className="text-[11px] text-zinc-500 font-medium">Detailed audit report of retroactive carrier price ratifications and ledger adjustments</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={handleApprove} 
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-sm transition-all cursor-pointer"
+          >
+            Approve & Post Ledger
+          </button>
+          <button 
+            onClick={handleReject} 
+            className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-sm transition-all cursor-pointer"
+          >
+            Reject Request
+          </button>
+          <button 
+            onClick={onClose} 
+            className="px-4 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-zinc-50 transition-all cursor-pointer"
+          >
+            Close
+          </button>
         </div>
       </div>
       
-      <div className="flex-1 overflow-auto p-8 space-y-12">
-        <div className="grid grid-cols-2 gap-12 text-left">
-          {/* Left Column */}
-          <div className="space-y-4">
-            {[
-              { label: 'Re-Rating ID', value: data?.['RE-RATING ID'] || '24' },
-              { label: 'Enterprise Type', value: data?.['Enterprise Type'] || 'Customer' },
-              { label: 'Customer List', value: '2' },
-              { label: 'Reprocess Reason', value: 'Rate Correction' },
-            ].map(item => (
-              <div key={item.label} className="grid grid-cols-2 gap-4">
-                <span className="text-[11px] font-black uppercase text-zinc-400 tracking-wider font-mono text-right">{item.label} :</span>
-                <span className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300">{item.value}</span>
+      <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 custom-scrollbar">
+        {/* Simplified conceptual helper banner for first-time users */}
+        <div className="p-5 bg-gradient-to-r from-blue-50/40 to-indigo-50/10 dark:from-zinc-800/20 dark:to-zinc-800/5 border border-blue-105 dark:border-zinc-800 rounded-2xl flex gap-4 text-left">
+          <Info className="w-5 h-5 text-[#428bca] mt-0.5 shrink-0" />
+          <div className="text-left font-sans text-left">
+            <h4 className="text-xs font-extrabold uppercase text-zinc-800 dark:text-zinc-200 text-left">First-time User Guide: What is Re-Rating?</h4>
+            <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed text-left">
+              When carrier/vendor SMS rates change retroactively, we run a **Re-Rating Audit**. 
+              This tool matches historically sent SMS volume logs against corrected price segments, works out the overcharged or undercharged dollar discrepancy, 
+              and creates a **Credit Note (Refund)** or **Debit Adjustment** to settle differences.
+            </p>
+          </div>
+        </div>
+
+        {/* Master details section using custom metric badges */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Left Details Card */}
+          <div className="bg-zinc-50/60 dark:bg-zinc-800/40 p-6 rounded-2xl border border-zinc-100 dark:border-zinc-800 space-y-4 text-left">
+            <h4 className="text-[11px] font-black uppercase text-[#428bca] tracking-wider border-b border-zinc-200/50 dark:border-zinc-710 pb-2 flex items-center gap-2 text-left">
+              <Database className="w-4 h-4" /> Audit Configuration
+            </h4>
+            
+            <div className="space-y-3.5 text-left font-sans">
+              {[
+                { label: 'Re-Rating ID', value: data?.['RE-RATING ID'] || 'RE-2026-9482' },
+                { label: 'Enterprise Type', value: data?.['Enterprise Type'] || 'Customer' },
+                { label: 'Target Account', value: 'Alpha-System-IN(97) - Main Retail Segment' },
+                { label: 'Reprocess Justification', value: 'Late Rate Card Revision Dispute' },
+                { label: 'Requested Audit Period', value: '2026-04-01 00:00 to 2026-04-30 23:59' }
+              ].map(item => (
+                <div key={item.label} className="grid grid-cols-12 gap-2 text-xs items-center text-left">
+                  <span className="col-span-12 sm:col-span-5 text-[10px] font-black uppercase text-zinc-400 tracking-wider font-mono text-left">{item.label} :</span>
+                  <span className="col-span-12 sm:col-span-7 font-bold text-zinc-700 dark:text-zinc-250 leading-relaxed text-left">{item.value}</span>
+                </div>
+              ))}
+              <div className="grid grid-cols-12 gap-2 text-xs items-center text-left">
+                <span className="col-span-5 text-[10px] font-black uppercase text-zinc-400 tracking-wider font-mono text-left">Processing State :</span>
+                <span className="col-span-7 text-left">
+                  <span className="px-2.5 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-extrabold uppercase rounded-full border border-amber-500/20 w-fit text-left">
+                    Awaiting Approval
+                  </span>
+                </span>
               </div>
-            ))}
-            <div className="grid grid-cols-2 gap-4">
-               <span className="text-[11px] font-black uppercase text-zinc-400 tracking-wider font-mono text-right">Priority :</span>
-               <span className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300">P1</span>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-               <span className="text-[11px] font-black uppercase text-zinc-400 tracking-wider font-mono text-right px-20">Start Date :</span>
-               <span className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300">2026-01-09 00:00:00</span>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-               <span className="text-[11px] font-black uppercase text-zinc-400 tracking-wider font-mono text-right">Request Status :</span>
-               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-bold rounded w-fit uppercase">Approved</span>
             </div>
           </div>
 
-          {/* Right Column */}
-          <div className="space-y-4">
-            {[
-              { label: 'Description', value: data?.['Description'] || 'Rate Correction Jan' },
-              { label: 'Rate Table List', value: '4' },
-              { label: 'Requested By', value: data?.['Requested By'] || 'Admin' },
-            ].map(item => (
-              <div key={item.label} className="grid grid-cols-2 gap-4">
-                <span className="text-[11px] font-black uppercase text-zinc-400 tracking-wider font-mono text-right">{item.label} :</span>
-                <span className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300">{item.value}</span>
+          {/* Right Details Card */}
+          <div className="bg-zinc-50/60 dark:bg-zinc-800/40 p-6 rounded-2xl border border-zinc-100 dark:border-zinc-800 space-y-4 text-left">
+            <h4 className="text-[11px] font-black uppercase text-[#428bca] tracking-wider border-b border-zinc-200/50 dark:border-zinc-710 pb-2 flex items-center gap-2 text-left">
+              <Activity className="w-4 h-4" /> System Metrics Breakdown
+            </h4>
+
+            <div className="space-y-3.5 text-left font-sans">
+              {[
+                { label: 'Audit Job Description', value: data?.['Description'] || 'Rate correction and retroactive billing settlement for April' },
+                { label: 'Triggered Reference Table', value: 'Tvoice_DIR_IN(91)' },
+                { label: 'Administrative Specialist', value: data?.['Requested By'] || 'System Admin' },
+                { label: 'Date Requested', value: data?.['Requested Date'] || '2026-05-30' }
+              ].map(item => (
+                <div key={item.label} className="grid grid-cols-12 gap-2 text-xs items-start text-left">
+                  <span className="col-span-5 text-[10px] font-black uppercase text-zinc-400 tracking-wider font-mono text-left">{item.label} :</span>
+                  <span className="col-span-7 font-bold text-zinc-700 dark:text-zinc-250 leading-relaxed text-left">{item.value}</span>
+                </div>
+              ))}
+              <div className="grid grid-cols-12 gap-2 text-xs items-center text-left">
+                <span className="col-span-12 text-left">
+                  <span className="text-[11px] font-bold text-zinc-400 flex items-center gap-1.5 bg-blue-50/20 dark:bg-zinc-950/20 p-2 border border-blue-100/10 rounded-lg text-left">
+                    <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" /> Balance ledger changes require final approval before writing.
+                  </span>
+                </span>
               </div>
-            ))}
-            <div className="grid grid-cols-2 gap-4">
-               <span className="text-[11px] font-black uppercase text-zinc-400 tracking-wider font-mono text-right">End Date :</span>
-               <span className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300">2026-01-09 23:59:59</span>
             </div>
           </div>
         </div>
 
-        <div className="space-y-4">
-           <h4 className="text-[12px] font-black uppercase text-[#428bca] border-b-2 border-[#428bca] pb-1 w-fit">Re-Rating Summary</h4>
-           <div className="border border-zinc-200 dark:border-zinc-800 rounded overflow-hidden">
-              <table className="w-full text-left border-collapse">
-                 <thead className="bg-[#f8f9fa] dark:bg-zinc-800 font-sans">
-                    <tr>
-                       {['ENTERPRISE NAME', 'TOTAL DLR', 'AMOUNT', 'TRANSACTION STATUS', 'ACTION'].map(h => (
-                         <th key={h} className="px-3 py-2 text-[10px] font-black text-zinc-500 uppercase tracking-widest border-r border-zinc-200 dark:border-zinc-700 last:border-r-0">{h}</th>
-                       ))}
-                    </tr>
-                 </thead>
-                 <tbody>
-                    <tr>
-                       <td colSpan={5} className="px-3 py-10 text-center text-[11px] font-bold text-zinc-400">No data available in table</td>
-                    </tr>
-                 </tbody>
-              </table>
-           </div>
+        {/* Dynamic calculation comparative block */}
+        <div className="space-y-4 text-left">
+          <h4 className="text-xs font-black uppercase text-zinc-700 dark:text-zinc-300 tracking-wider text-left">CDR Ingress Calculation Dry-Run</h4>
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-left">
+            <div className="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-150 dark:border-zinc-750 text-left">
+              <span className="text-[9px] font-black uppercase text-zinc-400 tracking-wider text-left">SMS Segments Scanned</span>
+              <p className="text-lg font-black text-zinc-800 dark:text-zinc-150 font-mono mt-1 text-left">{totalVolume.toLocaleString()} units</p>
+              <span className="text-[9px] text-[#428bca] font-bold block mt-1 uppercase text-left">Historic Log Files matched</span>
+            </div>
+            
+            <div className="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-150 dark:border-zinc-750 text-left">
+              <span className="text-[9px] font-black uppercase text-zinc-400 tracking-wider text-left">Original Invoiced Value</span>
+              <p className="text-lg font-black text-zinc-700 dark:text-zinc-350 font-mono mt-1 text-left">${originalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+              <span className="text-[9px] text-zinc-400 font-bold block mt-1 uppercase text-left">Billed at $0.0055/msg</span>
+            </div>
+
+            <div className="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-150 dark:border-zinc-750 text-left">
+              <span className="text-[9px] font-black uppercase text-zinc-400 tracking-wider text-[#428bca] text-left">Corrected Invoiced Value</span>
+              <p className="text-lg font-black text-[#428bca] font-mono mt-1 text-left">${correctedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+              <span className="text-[9px] text-[#428bca]/80 font-bold block mt-1 uppercase text-left">Billed at $0.0042/msg</span>
+            </div>
+
+            <div className="p-4 bg-emerald-55/10 dark:bg-emerald-950/20 rounded-xl border border-emerald-500/20 text-left">
+              <span className="text-[9px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-wider text-left">Calculated Refund Settle</span>
+              <p className="text-lg font-black text-emerald-600 dark:text-emerald-455 font-mono mt-1 text-left">${diffCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+              <span className="text-[9px] font-extrabold text-emerald-600 dark:text-emerald-400 block mt-1 uppercase text-left">Credit Note to dispatch</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Detailed Country code breakdown */}
+        <div className="space-y-4 text-left font-sans">
+          <h4 className="text-xs font-black uppercase text-zinc-700 dark:text-zinc-300 tracking-wider text-left">Audit Country segment breakdown</h4>
+          
+          <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-950 text-left">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800 font-sans">
+                <tr>
+                  {['MCCMNC CODE', 'COUNTRY DESIGNATION', 'ACCUMULATED VOLUME', 'ORIG PRICE ($)', 'CORR PRICE ($)', 'DELTA ($)'].map(h => (
+                    <th key={h} className="px-4 py-3 text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-wider border-r border-zinc-200 dark:border-zinc-800 last:border-r-0 text-left">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800 text-xs text-zinc-700 dark:text-zinc-350 text-left">
+                {[
+                  { mccmnc: '202001', country: 'Greece (Cosmote)', volume: 950000, orig: 0.0055, corr: 0.0042, delta: 950000 * (0.0055 - 0.0042) },
+                  { mccmnc: '202005', country: 'Greece (Vodafone)', volume: 900000, orig: 0.0055, corr: 0.0042, delta: 900000 * (0.0055 - 0.0042) }
+                ].map((row, index) => (
+                  <tr key={index} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/40 transition-colors text-left font-sans">
+                    <td className="px-4 py-3 font-mono font-bold text-left">{row.mccmnc}</td>
+                    <td className="px-4 py-3 font-semibold text-left">{row.country}</td>
+                    <td className="px-4 py-3 font-mono text-left">{row.volume.toLocaleString()} SMS</td>
+                    <td className="px-4 py-3 font-mono text-left">${row.orig.toFixed(4)}</td>
+                    <td className="px-4 py-3 font-mono text-[#428bca] text-left">${row.corr.toFixed(4)}</td>
+                    <td className="px-4 py-3 font-mono font-bold text-emerald-600 dark:text-emerald-400 text-left">-${row.delta.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -2560,7 +2671,7 @@ export function SMSProductViewDetails({ data }: { data: any }) {
             <p className="font-bold text-lg">{data?.['Product Name'] || 'N/A'}</p>
         </div>
         <div className="space-y-2">
-            <p className="text-[10px] font-black uppercase text-zinc-400">Product Category</p>
+            <p className="text-[10px] font-black uppercase text-zinc-400">Category</p>
             <p className="font-bold text-lg">{data?.['Category'] || 'N/A'}</p>
         </div>
         <div className="space-y-2">
