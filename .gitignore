@@ -1,0 +1,12 @@
+node_modules/
+.angular/
+.vite/
+.next/
+.cache/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
