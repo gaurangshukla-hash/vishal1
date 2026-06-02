@@ -1,0 +1,122 @@
+version: '3.8'
+
+services:
+  # MariaDB Database
+  mariadb:
+    image: mariadb:10.6
+    container_name: teleoss-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_NAME:-teleoss_system}
+      MYSQL_USER: ${DB_USER:-teleoss_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-teleoss_pass}
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./database/schema:/docker-entrypoint-initdb.d
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - teleoss-network
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Spring Boot Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: teleoss-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mariadb:3306/${DB_NAME:-teleoss_system}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-teleoss_user}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-teleoss_pass}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_PROFILES_ACTIVE: prod
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      JWT_EXPIRATION: 86400000
+    ports:
+      - "8080:8080"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - teleoss-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # Angular Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: teleoss-frontend
+    environment:
+      API_BASE_URL: http://backend:8080/api
+      NODE_ENV: production
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - teleoss-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy (Optional - for production)
+  nginx:
+    image: nginx:alpine
+    container_name: teleoss-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - teleoss-network
+    restart: unless-stopped
+    profiles:
+      - production
+
+volumes:
+  mariadb_data:
+    driver: local
+
+networks:
+  teleoss-network:
+    driver: bridge
+
+# Usage:
+# Development (without Nginx):
+#   docker-compose up -d
+#
+# Production (with Nginx):
+#   docker-compose --profile production up -d
+#
+# Stop services:
+#   docker-compose down
+#
+# View logs:
+#   docker-compose logs -f backend
+#   docker-compose logs -f frontend
+#   docker-compose logs -f mariadb
+#
+# Access:
+#   Frontend: http://localhost:4200
+#   Backend API: http://localhost:8080
+#   Swagger: http://localhost:8080/swagger-ui.html
